@@ -31,10 +31,10 @@ VMI_ENDIAN_FN(coldfireGetEndian) {
 }
 
 //
-// Return the next instruction address after 'thisPC'.
+//The ColdFire architecture instruction word length is limited to 3 sizes: 16, 32, or 48 bits
 //
-VMI_NEXT_PC_FN(coldfireNextInstruction) {
-    Uns32 nextAddress = (Uns32)(thisPC + 4);
+VMI_NEXT_PC_FN_VAR(coldfireNextInstruction) {
+    Uns32 nextAddress = (Uns32)(thisPC + iLength/8);
     return nextAddress;
 }
 

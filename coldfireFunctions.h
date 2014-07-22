@@ -32,7 +32,7 @@ VMI_MORPH_FN(coldfireMorphInstruction);
 
 // simulation support functions
 VMI_ENDIAN_FN(coldfireGetEndian);
-VMI_NEXT_PC_FN(coldfireNextInstruction);
+VMI_NEXT_PC_FN_VAR(coldfireNextInstruction);
 
 // port functions
 VMI_BUS_PORT_SPECS_FN(coldfireGetBusPortSpec);
