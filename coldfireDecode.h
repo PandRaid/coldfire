@@ -25,13 +25,17 @@ typedef COLDFIRE_DISPATCH_FN((*coldfireDispatchFn));
 //
 typedef enum coldfireInstructionTypeW{
 
-    // arithmetic instructions
+    //INTEGER INSTRUCTIONS 16 bit
+    COLDFIRE_ADD,
+
+    //INTEGER INSTRUCTIONS 32 bit
+    //INTEGER INSTRUCTIONS 48 bit
     COLDFIRE_ADDI,
-    COLDFIRE_ADDIC,
-    COLDFIRE_ANDI,
-    COLDFIRE_ORI,
-    COLDFIRE_XORI,
-    COLDFIRE_MULI,
+
+    //Fall through for 16,32,48 bit
+    COLDFIRE_INSTR16,
+    CODLFIRE_INSTR32,
+    COLDFIRE_INSTR48,
 
     // KEEP LAST: for sizing the array
     COLDFIRE_LAST
