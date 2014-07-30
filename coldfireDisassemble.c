@@ -7,7 +7,43 @@
 // model header files
 #include "coldfireDecode.h"
 #include "coldfireFunctions.h"
+#include "coldfireInstructions.h"
 
+// Disassemble a binary/signed 16bit instruction
+//
+static void doBinopSLit16(char *buffer, Uns32 instr, char *coldfireop) {
+
+    Uns8 mode = OP2_MODE(instr);
+    Uns32 rd;
+    Uns32 rs;
+    if(mode == 2){
+        rd = OP2_R1(instr); 
+        rs = OP2_R2(instr);
+    }
+    else if(mode == 6){
+        rd = OP2_R2(instr); 
+        rs = OP2_R1(instr); 
+    }
+    else{
+        rd = OP2_R1(instr); 
+        rs = OP2_R2(instr);
+    }
+
+    sprintf(buffer, "%-8s r%u,r%u", coldfireop, rd, rs);
+}
+// Disassemble a binary/signed 32bit instruction
+//
+static void doBinopSLit32(char *buffer, Uns32 instr, char *coldfireop) {
+
+    Uns32 rd = OP3_R1(instr); 
+    Uns32 IMML = OP3_IMML(instr);
+    Uns32 IMMU = OP3_IMMU(instr);
+
+    sprintf(buffer, "%-8s r%u,r%u, r%u", coldfireop, rd, IMMU, IMML);
+}
+
+static COLDFIRE_DISPATCH_FN(disADD)  {doBinopSLit16(userData, instr, "l.add");}
+static COLDFIRE_DISPATCH_FN(disADDI) {doBinopSLit32(userData, instr, "l.addi");}
 
 //
 // Default disassembler callback
@@ -22,17 +58,13 @@ static COLDFIRE_DISPATCH_FN(disDefault) {
 }
 
 //
-// OR1K disassembler dispatch table
+// COLDFIRE disassembler dispatch table
 //
 static coldfireDispatchTableC dispatchTable = {
 
     // handle arithmetic instructions
-    [COLDFIRE_ADDI]  = disDefault,
-    [COLDFIRE_ADDIC] = disDefault,
-    [COLDFIRE_ANDI]  = disDefault,
-    [COLDFIRE_ORI]   = disDefault,
-    [COLDFIRE_XORI]  = disDefault,
-    [COLDFIRE_MULI]  = disDefault
+    [COLDFIRE_ADD] = disADD,
+    [COLDFIRE_ADDI]  = disADDI
 };
 
 //

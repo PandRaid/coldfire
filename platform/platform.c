@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
         32,                 // address bits
         MORPHER_FILE,       // model file
         MORPHER_SYMBOL,     // morpher attributes
-        0,                  // no CPU attributes
+        ICM_ATTR_TRACE,     // enable tracing
         0,                  // user-defined attributes
         0,                  // semi-hosting file
         0                   // semi-hosting attributes

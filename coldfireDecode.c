@@ -130,6 +130,7 @@ Bool coldfireDecode(
     vmiProcessorP processor = (vmiProcessorP) coldfire;
     Uns16         instr16   = vmicxtFetch2Byte(processor, thisPC);
 
+
     // is this a 16-bit or 32-bit instruction?
     if(is16BitInstruction(instr16)) {
 

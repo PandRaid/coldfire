@@ -68,6 +68,10 @@ application/application.o: application/application.c
 	$(V) echo "Compiling Application $@"
 	$(V) $(IMPERAS_CC)  -c  -o $@  $<
 
+asmtest.elf: application/asmtest.o
+	$(V) echo "Linking Application $@"
+	$(V) $(IMPERAS_LD) -o $@ $^
+
 #
 # Cleanup section
 #

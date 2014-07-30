@@ -22,11 +22,7 @@ static coldfireDispatchTableC dispatchTable = {
 
     // handle arithmetic instructions
     [COLDFIRE_ADDI]  = morphNOP,
-    [COLDFIRE_ADDIC] = morphNOP,
-    [COLDFIRE_ANDI]  = morphNOP,
-    [COLDFIRE_ORI]   = morphNOP,
-    [COLDFIRE_XORI]  = morphNOP,
-    [COLDFIRE_MULI]  = morphNOP
+    [COLDFIRE_ADD] = morphNOP
 };
 
 //
