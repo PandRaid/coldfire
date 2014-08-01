@@ -101,7 +101,15 @@ VMI_CONSTRUCTOR_FN(coldfireConstructor) {
 
     coldfireP coldfire = (coldfireP)processor;
 
-    vmiPrintf("%s called\n", FUNC_NAME);
+    vmiPrintf("%s called, initializing registers\n", FUNC_NAME);
+    Uns32 i;
+
+    for(i=0; i<(COLDFIRE_REGSD); i++) {
+        coldfire->regsA[i] = 0xdeadbeef;
+    }
+    for(i=0; i<(COLDFIRE_REGSA); i++) {
+        coldfire->regsD[i] = 0xdeadbeef;
+    }
 
     // create bus port specifications
     newBusPorts(coldfire);
@@ -119,4 +127,3 @@ VMI_DESTRUCTOR_FN(coldfireDestructor) {
     // free bus port specifications
     freeBusPorts(coldfire);
 }
-

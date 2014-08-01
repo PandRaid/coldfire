@@ -7,22 +7,63 @@
 #include "coldfireDecode.h"
 #include "coldfireFunctions.h"
 #include "coldfireStructure.h"
+#include "coldfireInstructions.h"
+
 
 //
-// NOP morpher callback
+// Emit code to implement a binary/signed 16 bit literal COLDFIRE instruction
 //
-static COLDFIRE_DISPATCH_FN(morphNOP) {
-    // no action for a NOP
+static void doBinopSLit16(Uns32 instr, vmiBinop op){
+
+    Uns8 mode = OP2_MODE(instr);
+    Uns32 rd;
+    Uns32 rs;
+    if(mode == 2){
+        rd = OP2_R1(instr); 
+        rs = OP2_R2(instr);
+    }
+    else if(mode == 6){
+        rd = OP2_R2(instr); 
+        rs = OP2_R1(instr); 
+    }
+    else{
+        rd = OP2_R1(instr); 
+        rs = OP2_R2(instr);
+    }
+    vmiReg target = COLDFIRE_REGD(rd);
+    vmimtBinopRRR(COLDFIRE_BITS, op, target, COLDFIRE_REGD(rs), target, 0);
+
+
 }
 
 //
-// COLDFIRE morpher dispatch table
+// Emit code to implement a binary/signed 48 bit literal COLDFIRE instruction
 //
+static void doBinopSLit48(Uns32 instr, vmiBinop op){
+
+    Uns32 rd = OP3_R1(instr); 
+    Uns32 IMML = OP3_IMML(instr);
+    Uns32 IMMU = OP3_IMMU(instr);
+    Uns32 Total = IMMU + IMML;
+
+    vmiReg target = COLDFIRE_REGD(rd);
+    vmimtBinopRRC(COLDFIRE_BITS, op, target, target, Total, 0);
+}
+
+//
+// Handle arithmetic instructions
+//
+static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(instr, vmi_ADD);}
+static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(instr, vmi_ADD);}
+
+
+//
+// COLDFIRE morpher dispatch table
 static coldfireDispatchTableC dispatchTable = {
 
     // handle arithmetic instructions
-    [COLDFIRE_ADDI]  = morphNOP,
-    [COLDFIRE_ADD] = morphNOP
+    [COLDFIRE_ADD]  = morphADD,
+    [COLDFIRE_ADDI] = morphADDI
 };
 
 //

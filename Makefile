@@ -37,9 +37,11 @@ $(SOLIB): $(OBJS)
 #
 # platform Section
 #
-MORPHER_FILE   = "./or1kModel.$(IMPERAS_SHRSUF)"
-MORPHER_SYMBOL = "modelAttrs"
-TYPE_NAME      = "or1k"
+MORPHER_FILE    = "./or1kModel.$(IMPERAS_SHRSUF)"
+MORPHER_SYMBOL  = "modelAttrs"
+TYPE_NAME       = "or1k"
+SEMIHOST_FILE   = "$(IMPERAS_LIB)/ImperasLib/ovpworld.org/modelSupport/imperasExit/1.0/model.$(IMPERAS_SHRSUF)"
+SEMIHOST_SYMBOL = "modelAttrs"
 
 platform.exe: platform/platform.o
 	$(V) echo "Linking platform $@"
@@ -50,7 +52,9 @@ platform/platform.o: platform/platform.c
 	$(V) $(HOST_GCC) $(CFLAGS) -c -o $@ $< \
 	  -DMORPHER_FILE="\"${MORPHER_FILE}\"" \
 	  -DMORPHER_SYMBOL="\"${MORPHER_SYMBOL}\"" \
-	  -DTYPE_NAME="\"${TYPE_NAME}\"" 
+	  -DTYPE_NAME="\"${TYPE_NAME}\"" \
+	  -DSEMIHOST_FILE="\"${SEMIHOST_FILE}\"" \
+	  -DSEMIHOST_SYMBOL="\"${SEMIHOST_SYMBOL}\""
 
 #
 # Application section
@@ -67,15 +71,20 @@ application.elf: application/application.o
 application/application.o: application/application.c
 	$(V) echo "Compiling Application $@"
 	$(V) $(IMPERAS_CC)  -c  -o $@  $<
-
+	
 asmtest.elf: application/asmtest.o
 	$(V) echo "Linking Application $@"
 	$(V) $(IMPERAS_LD) -o $@ $^
+
+application/asmtest.o: application/asmtest.S
+	$(V) echo "Compiling Application $@"
+	$(V) $(IMPERAS_CC)  -c  -o $@  $<
 
 #
 # Cleanup section
 #
 clean:
 	$(V) - rm -f application.elf application/application.o
+	$(V) - rm -f asmtest.elf application/asmtest.o
 	$(V) - rm -f $(OBJS) $(SOLIB)
 	$(V) - rm -f platform/platform.o platform.exe

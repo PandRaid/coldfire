@@ -49,6 +49,8 @@ static Bool simulate(icmProcessorP processor, Uns64 instructions) {
     }
 }
 
+#define MODEL_FLAGS (ICM_ATTR_TRACE | ICM_ATTR_TRACE_REGS_AFTER)
+
 //
 // Main simulation routine
 //
@@ -72,10 +74,10 @@ int main(int argc, char ** argv) {
         32,                 // address bits
         MORPHER_FILE,       // model file
         MORPHER_SYMBOL,     // morpher attributes
-        ICM_ATTR_TRACE,     // enable tracing
+        MODEL_FLAGS,        // enable tracing or register values
         0,                  // user-defined attributes
-        0,                  // semi-hosting file
-        0                   // semi-hosting attributes
+        SEMIHOST_FILE,      // semi-hosting file
+        SEMIHOST_SYMBOL     // semi-hosting attributes
     );
 
     // load the processor object file
