@@ -43,8 +43,8 @@ static void doBinopSLit48(char *buffer, Uns32 instr, char *coldfireop) {
     sprintf(buffer, "%-8s r%u,r%u", coldfireop, rd, Total);
 }
 
-static COLDFIRE_DISPATCH_FN(disADD)  {doBinopSLit16(userData, instr, "l.add");}
-static COLDFIRE_DISPATCH_FN(disADDI) {doBinopSLit48(userData, instr, "l.addi");}
+static COLDFIRE_DISPATCH_FN(disADD)  {doBinopSLit16(userData, instr, "add.l");}
+static COLDFIRE_DISPATCH_FN(disADDI) {doBinopSLit48(userData, instr, "addi.l");}
 
 //
 // Default disassembler callback
