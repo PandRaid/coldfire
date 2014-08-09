@@ -14,7 +14,7 @@ else
   LDFLAGS += export.def
 endif
 
-all: or1kModel.$(IMPERAS_SHRSUF) application.elf platform.exe
+all: or1kModel.$(IMPERAS_SHRSUF) asmtest.elf application.elf platform.exe
 
 #
 # Processor Section
@@ -59,9 +59,9 @@ platform/platform.o: platform/platform.c
 #
 # Application section
 #
--include $(IMPERAS_LIB)/CrossCompiler/OR1K.makefile.include
-ifeq ($(OR1K_CC),)
-    IMPERAS_ERROR := $(error "Please install the OR1K_CC toolchain")
+-include $(IMPERAS_LIB)/CrossCompiler/COLDFIRE.makefile.include
+ifeq ($(COLDFIRE_AS),)
+    IMPERAS_ERROR := $(error "Please install the OR1K_AS toolchain")
 endif
 
 application.elf: application/application.o
@@ -78,7 +78,7 @@ asmtest.elf: application/asmtest.o
 
 application/asmtest.o: application/asmtest.S
 	$(V) echo "Compiling Application $@"
-	$(V) $(IMPERAS_CC)  -c  -o $@  $<
+	$(V) $(COLDFIRE_AS) -o $@  $<
 
 #
 # Cleanup section
