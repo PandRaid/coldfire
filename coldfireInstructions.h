@@ -37,8 +37,8 @@
 // IMMEDIATE INSTRUCTIONS
 // OPCODE(13) R1(3) IMMEDIATE(32)
 ////////////////////////////////////////////////////////////////////////////////
-#define OP3_R1(_I)       WIDTH(3,(_I)>>0)
-#define OP3_IMML(_I)	     WIDTH(16, (_I)>>16)
+#define OP3_R1(_I)       WIDTH(3,(_I)>>32)
+#define OP3_IMML(_I)	     WIDTH(16, (_I)>>0)
 #define OP3_IMMU(_I)	     WIDTH(16, (_I)>>16)
 
 #endif

@@ -52,21 +52,21 @@ static void doBinopSLit16(char *buffer, Uns32 instr, char *coldfireop) {
 
 // Disassemble a binary/signed 48bit instruction
 //
-static void doBinopSLit48(char *buffer, Uns32 instr, char *coldfireop) {
+static void doBinopSLit48(char *buffer, Uns64 instr, char *coldfireop) {
 
-    Uns32 rd = OP3_R1(instr); 
+    Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
     Uns32 IMMU = OP3_IMMU(instr);
     Uns32 Total = IMML + IMMU;
 
-    sprintf(buffer, "%-8s #%u,r%u", coldfireop, Total, rd);
+    sprintf(buffer, "%-8s #%u,r%lu", coldfireop, Total, (unsigned long) rd);
 }
 
 //
 // Handle arithmetic instructions
 //
 static COLDFIRE_DISPATCH_FN(disADD)  {doBinopSLit16(userData, instr, "add.l");}
-static COLDFIRE_DISPATCH_FN(disADDI) {doBinopSLit48(userData, instr, "addi.l");}
+static COLDFIRE_DISPATCH_FN64(disADDI) {doBinopSLit48(userData, instr, "addi.l");}
 
 //
 // COLDFIRE disassembler dispatch table

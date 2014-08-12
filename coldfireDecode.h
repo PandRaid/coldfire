@@ -39,6 +39,17 @@
 typedef COLDFIRE_DISPATCH_FN((*coldfireDispatchFn));
 
 //
+// Dispatcher callback type for larger data types
+//
+#define COLDFIRE_DISPATCH_FN64(_NAME) void _NAME( \
+    coldfireP coldfire,     \
+    Uns32 thisPC,   \
+    Uns32 instr,    \
+    void *userData  \
+)
+typedef COLDFIRE_DISPATCH_FN64((*coldfireDispatchFn64));
+
+//
 // Instruction type enumeration
 //
 typedef enum coldfireInstructionTypeE {

@@ -101,10 +101,10 @@ VMI_CONSTRUCTOR_FN(coldfireConstructor) {
     Uns32 i;
 
     for(i=0; i<(COLDFIRE_REGSD); i++) {
-        coldfire->regsA[i] = 0xdeadbeef;
+        coldfire->regsA[i] = 0x00000001;
     }
     for(i=0; i<(COLDFIRE_REGSA); i++) {
-        coldfire->regsD[i] = 0xdeadbeef;
+        coldfire->regsD[i] = 0x00000001;
     }
 
     // create bus port specifications

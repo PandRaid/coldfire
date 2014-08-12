@@ -64,7 +64,7 @@ inline static Bool is32BitInstruction(Uns32 msw) {
 }
 
 //
-// Decode a 48-bit instruction
+// Decode an instruction
 //
 static coldfireInstructionType decode(coldfireP coldfire, Uns16 instr) {
 
@@ -127,7 +127,7 @@ Bool coldfireDecode(
     }
     else{
         // get 48-bit instruction
-        Uns64 instr48 = ((Uns64) instr16<<32) | vmicxtFetch2Byte(processor, thisPC+4);
+        Uns64 instr48 = ((Uns64) instr16<<32) | vmicxtFetch4Byte(processor, thisPC+2);
 
         // 48-bit instruction decode
         coldfireInstructionType type = decode(coldfire, instr16);
