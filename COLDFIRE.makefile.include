@@ -1,0 +1,104 @@
+################################################################################
+# COLDFIRE.makefile.include
+################################################################################
+#/*
+# * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
+# *
+# * Licensed under the Apache License, Version 2.0 (the "License");
+# * you may not use this file except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *   http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# * either express or implied.
+# *
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *
+# */
+################################################################################
+#
+# Include this file from Makefiles which build code for the coldfire processor
+# It defines variables for compiling and linking using the coldfire cross-compiler. 
+#
+# Note:
+#  - Imperas-specific CFLAGS and include paths are already included in the
+#    $(IMPERAS_CC) and $(IMPERAS_CXX) commands
+#  - The $(IMPERAS_LDFLAGS) variable must be specified at the end of a link
+#    command
+#
+
+ifndef IMPERAS_HOME
+  IMPERAS_ERROR := $(error "IMPERAS_HOME not defined")
+endif
+ifndef IMPERAS_ARCH
+  IMPERAS_ERROR := $(error "IMPERAS_ARCH not defined")
+endif
+
+COLDFIRE_CROSSCOMPILER   = $(IMPERAS_HOME)/lib/$(IMPERAS_ARCH)/CrossCompiler/m68k-elf
+ifeq ($(IMPERAS_UNAME),"Windows")
+  COLDFIRE_CROSSCOMPILER:= $(shell getpath.exe $(COLDFIRE_CROSSCOMPILER))
+endif
+COLDFIRE_TARGETLIBRARIES = $(IMPERAS_HOME)/lib/$(IMPERAS_ARCH)/TargetLibraries
+COLDFIRE_IMPPUBLIC       = $(IMPERAS_HOME)/ImpPublic
+
+include $(IMPERAS_HOME)/lib/$(IMPERAS_ARCH)/CrossCompiler/Makefile.common.include
+
+COLDFIRE_INCLUDES = \
+    -I$(COLDFIRE_IMPPUBLIC)/include/common \
+    -I$(COLDFIRE_IMPPUBLIC)/include/target/common \
+    -I$(COLDFIRE_IMPPUBLIC)/include/target/application \
+    -I$(COLDFIRE_TARGETLIBRARIES)/include/coldfire
+
+COLDFIRE_CFLAGS = 
+COLDFIRE_AFLAGS = -march=isaaplus --register-prefix-optional
+
+
+COLDFIRE_LDFLAGS0 = \
+    -nostartfiles \
+    -T$(COLDFIRE_TARGETLIBRARIES)/m68k-elf/m68k-elf-lib.ld \
+    -L$(COLDFIRE_TARGETLIBRARIES)/m68k-elf \
+    $(COLDFIRE_TARGETLIBRARIES)/m68k-elf/crt0.o
+
+COLDFIRE_LDFLAGS  = -limperas
+
+COLDFIRE_CC       = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-gcc $(COLDFIRE_CFLAGS) $(COLDFIRE_INCLUDES)
+COLDFIRE_CXX      = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-g++ $(COLDFIRE_CFLAGS) $(COLDFIRE_INCLUDES)
+COLDFIRE_LINK     = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-gcc $(COLDFIRE_CFLAGS) $(COLDFIRE_INCLUDES) $(COLDFIRE_LDFLAGS0)
+COLDFIRE_LINKXX   = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-g++ $(COLDFIRE_CFLAGS) $(COLDFIRE_INCLUDES) $(COLDFIRE_LDFLAGS0)
+COLDFIRE_AS       = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-as  $(COLDFIRE_AFLAGS)
+COLDFIRE_LD       = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-ld
+COLDFIRE_AR       = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-ar
+COLDFIRE_NM       = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-nm
+COLDFIRE_RANLIB   = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-ranlib
+COLDFIRE_STRIP    = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-strip
+COLDFIRE_READELF  = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-readelf
+COLDFIRE_OBJDUMP  = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-objdump
+COLDFIRE_OBJCOPY  = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-objcopy
+COLDFIRE_GDB      = $(COLDFIRE_CROSSCOMPILER)/bin/m68k-elf-gdb
+
+# Copy out to IMPERAS_
+IMPERAS_CROSSCOMPILER = $(COLDFIRE_CROSSCOMPILER)
+IMPERAS_TARGETLIBRARIES = $(COLDFIRE_TARGETLIBRARIES)
+IMPERAS_IMPPUBLIC = $(COLDFIRE_IMPPUBLIC)
+IMPERAS_INCLUDES = $(COLDFIRE_INCLUDES)
+IMPERAS_CFLAGS = $(COLDFIRE_CFLAGS)
+IMPERAS_LDFLAGS0 = $(COLDFIRE_LDFLAGS0)
+IMPERAS_LDFLAGS = $(COLDFIRE_LDFLAGS)
+IMPERAS_CC = $(COLDFIRE_CC)
+IMPERAS_CXX = $(COLDFIRE_CXX)
+IMPERAS_LINK = $(COLDFIRE_LINK)
+IMPERAS_LINKXX = $(COLDFIRE_LINKXX)
+IMPERAS_AS = $(COLDFIRE_AS)
+IMPERAS_LD = $(COLDFIRE_LD)
+IMPERAS_AR = $(COLDFIRE_AR)
+IMPERAS_NM = $(COLDFIRE_NM)
+IMPERAS_RANLIB = $(COLDFIRE_RANLIB)
+IMPERAS_STRIP = $(COLDFIRE_STRIP)
+IMPERAS_READELF = $(COLDFIRE_READELF)
+IMPERAS_OBJDUMP = $(COLDFIRE_OBJDUMP)
+IMPERAS_OBJCOPY = $(COLDFIRE_OBJCOPY)
+IMPERAS_GDB = $(COLDFIRE_GDB)
