@@ -51,14 +51,15 @@ const vmiIASAttr modelAttrs = {
     // MORPHER CORE ROUTINES
     ////////////////////////////////////////////////////////////////////////
 
-    .morphCB = coldfireMorphInstruction,
+    .morphCB        = coldfireMorphInstruction,
 
     ////////////////////////////////////////////////////////////////////////
     // SIMULATION SUPPORT ROUTINES
     ////////////////////////////////////////////////////////////////////////
 
-    .getEndianCB = coldfireGetEndian,
-    .nextPCCB = coldfireNextInstruction,
+    .getEndianCB    = coldfireGetEndian,
+    .nextPCCB       = coldfireNextInstruction,
+    .disCB          = coldfireDisassemble,
 
     ////////////////////////////////////////////////////////////////////////
     // PORT ROUTINES

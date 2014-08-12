@@ -14,7 +14,7 @@ else
   LDFLAGS += export.def
 endif
 
-all: or1kModel.$(IMPERAS_SHRSUF) asmtest.elf application.elf platform.exe
+all: or1kModel.$(IMPERAS_SHRSUF) asmtest.elf platform.exe
 
 #
 # Processor Section

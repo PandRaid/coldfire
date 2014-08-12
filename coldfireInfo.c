@@ -31,14 +31,14 @@ VMI_PROC_INFO_FN(coldfireProcInfo) {
 
         .semihost.vendor  = "ovpworld.org"    ,
         .semihost.library = "semihosting"     ,
-        .semihost.name    = "coldfireNewLib"      ,
+        .semihost.name    = "coldfireNewlib"      ,
         .semihost.version = "1.0"             ,
 
         .elfCode          = 33906,
         .endianFixed      = True,
         .endian           = MEM_ENDIAN_BIG,
-        .gdbPath          = "" VMI_EXE_SUFFIX,
-        .family           = "ASU",
+        .gdbPath          = "$IMPERAS_HOME/lib/$IMPERAS_ARCH/CrossCompiler/or32-elf/bin/or32-elf-gdb" VMI_EXE_SUFFIX,
+        .family           = "openCores",
     };
     return &info;
 }

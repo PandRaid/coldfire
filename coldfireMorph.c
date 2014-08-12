@@ -1,3 +1,22 @@
+/*
+ *
+ * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
+ *
+ * The contents of this file are provided under the Software License
+ * Agreement that you accepted before downloading this file.
+ *
+ * This source forms part of the Software and can be used for educational,
+ * training, and demonstration purposes but cannot be used for derivative
+ * works except in cases where the derivative works require OVP technology
+ * to run.
+ *
+ * For open source models released under licenses that you can use for
+ * derivative works, please visit www.OVPworld.org or www.imperas.com
+ * for the location of the open source models.
+ *
+ */
+
+
 // VMI header files
 #include "vmi/vmiMessage.h"
 #include "vmi/vmiMt.h"
@@ -6,9 +25,8 @@
 // model header files
 #include "coldfireDecode.h"
 #include "coldfireFunctions.h"
-#include "coldfireStructure.h"
 #include "coldfireInstructions.h"
-
+#include "coldfireStructure.h"
 
 //
 // Emit code to implement a binary/signed 16 bit literal COLDFIRE instruction
@@ -56,7 +74,6 @@ static void doBinopSLit48(Uns32 instr, vmiBinop op){
 static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(instr, vmi_ADD);}
 static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(instr, vmi_ADD);}
 
-
 //
 // COLDFIRE morpher dispatch table
 static coldfireDispatchTableC dispatchTable = {
@@ -99,10 +116,9 @@ static COLDFIRE_DISPATCH_FN(morphDefault) {
 }
 
 //
-// Create code for the COLDFIRE instruction at the simulated address referenced
+// Create code for the coldfire instruction at the simulated address referenced
 // by 'thisPC'.
 //
 VMI_MORPH_FN(coldfireMorphInstruction) {
     coldfireDecode((coldfireP)processor, thisPC, &dispatchTable, morphDefault, 0);
 }
-

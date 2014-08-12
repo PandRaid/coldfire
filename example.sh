@@ -7,5 +7,7 @@ fi
 
 
 make all
+
 platform.exe application.elf
 
+platform.exe asmtest.elf

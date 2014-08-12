@@ -16,30 +16,6 @@
  *
  */
 
-
-// VMI header files
-#include "vmi/vmiCxt.h"
-#include "vmi/vmiMt.h"
-#include "vmi/vmiRt.h"
-
-// model header files
-#include "coldfireDecode.h"
-#include "coldfireFunctions.h"
-#include "coldfireInstructions.h"
-#include "coldfireStructure.h"
-
-//
-// This returns the endianness of the OR1K processor
-//
-VMI_ENDIAN_FN(coldfireGetEndian) {
-    return MEM_ENDIAN_BIG;
-}
-
-//
-// Return the next instruction address after 'thisPC'.
-//
-VMI_NEXT_PC_FN(coldfireNextInstruction) {
-    Uns32 nextAddress = coldfireNextAddr((coldfireP)processor, thisPC);
-    return nextAddress;
-}
-
+.global _start
+_start:	addi.l     #64, %d0
+		add.l      %d1, %d0

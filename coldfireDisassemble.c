@@ -1,3 +1,21 @@
+/*
+ *
+ * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
+ *
+ * The contents of this file are provided under the Software License
+ * Agreement that you accepted before downloading this file.
+ *
+ * This source forms part of the Software and can be used for educational,
+ * training, and demonstration purposes but cannot be used for derivative
+ * works except in cases where the derivative works require OVP technology
+ * to run.
+ *
+ * For open source models released under licenses that you can use for
+ * derivative works, please visit www.OVPworld.org or www.imperas.com
+ * for the location of the open source models.
+ *
+ */
+
 // standard includes
 #include <stdio.h>
 
@@ -6,8 +24,8 @@
 
 // model header files
 #include "coldfireDecode.h"
-#include "coldfireFunctions.h"
 #include "coldfireInstructions.h"
+#include "coldfireFunctions.h"
 
 // Disassemble a binary/signed 16bit instruction
 //
@@ -31,7 +49,8 @@ static void doBinopSLit16(char *buffer, Uns32 instr, char *coldfireop) {
 
     sprintf(buffer, "%-8s r%u,r%u", coldfireop, rd, rs);
 }
-// Disassemble a binary/signed 32bit instruction
+
+// Disassemble a binary/signed 48bit instruction
 //
 static void doBinopSLit48(char *buffer, Uns32 instr, char *coldfireop) {
 
@@ -40,11 +59,25 @@ static void doBinopSLit48(char *buffer, Uns32 instr, char *coldfireop) {
     Uns32 IMMU = OP3_IMMU(instr);
     Uns32 Total = IMML + IMMU;
 
-    sprintf(buffer, "%-8s r%u,r%u", coldfireop, rd, Total);
+    sprintf(buffer, "%-8s #%u,r%u", coldfireop, Total, rd);
 }
 
+//
+// Handle arithmetic instructions
+//
 static COLDFIRE_DISPATCH_FN(disADD)  {doBinopSLit16(userData, instr, "add.l");}
 static COLDFIRE_DISPATCH_FN(disADDI) {doBinopSLit48(userData, instr, "addi.l");}
+
+//
+// COLDFIRE disassembler dispatch table
+//
+static coldfireDispatchTableC dispatchTable = {
+
+    // handle arithmetic instructions
+    [COLDFIRE_ADD] = disADD,
+    [COLDFIRE_ADDI]  = disADDI
+};
+
 
 //
 // Default disassembler callback
@@ -59,17 +92,7 @@ static COLDFIRE_DISPATCH_FN(disDefault) {
 }
 
 //
-// COLDFIRE disassembler dispatch table
-//
-static coldfireDispatchTableC dispatchTable = {
-
-    // handle arithmetic instructions
-    [COLDFIRE_ADD] = disADD,
-    [COLDFIRE_ADDI]  = disADDI
-};
-
-//
-// COLDFIRE disassembler
+// coldfire disassembler
 //
 VMI_DISASSEMBLE_FN(coldfireDisassemble) {
     

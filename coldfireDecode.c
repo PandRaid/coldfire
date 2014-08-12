@@ -1,9 +1,28 @@
+/*
+ *
+ * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
+ *
+ * The contents of this file are provided under the Software License
+ * Agreement that you accepted before downloading this file.
+ *
+ * This source forms part of the Software and can be used for educational,
+ * training, and demonstration purposes but cannot be used for derivative
+ * works except in cases where the derivative works require OVP technology
+ * to run.
+ *
+ * For open source models released under licenses that you can use for
+ * derivative works, please visit www.OVPworld.org or www.imperas.com
+ * for the location of the open source models.
+ *
+ */
+
 // VMI header files
 #include "vmi/vmiCxt.h"
 #include "vmi/vmiDecode.h"
 
 // model header files
 #include "coldfireDecode.h"
+#include "coldfireInstructions.h"
 
 //
 // This macro adds a decode table entry for a specific instruction class
@@ -16,98 +35,25 @@
         _FMT,               \
         _PRIORITY           \
     )
-
+;
 //
-// Create the coldfire decode table 16 bit
+// Create the coldfire decode table
 //
-static vmidDecodeTableP createDecodeTable16(void) {
+static vmidDecodeTableP createDecodeTable(void) {
     
     vmidDecodeTableP table = vmidNewDecodeTable(16, COLDFIRE_LAST);
 
     // handle arithmetic instructions (second argument constant)
-    DECODE_ENTRY(0, ADD,  "|1101...111......|");
-
-    return table;
-}
-
-//
-// Create the coldfire decode table 32 bit
-//
-static vmidDecodeTableP createDecodeTable32(void) {
-    
-    vmidDecodeTableP table = vmidNewDecodeTable(32, COLDFIRE_LAST);
-
-    // handle arithmetic instructions (second argument constant)
-
-    return table;
-}
-
-//
-// Create the coldfire decode table 48 bit
-//
-static vmidDecodeTableP createDecodeTable48(void) {
-    
-    vmidDecodeTableP table = vmidNewDecodeTable(48, COLDFIRE_LAST);
-
-    // handle arithmetic instructions (second argument constant)
+    DECODE_ENTRY(0, ADD,   "|1101............|"); 
     DECODE_ENTRY(0, ADDI,  "|0000011010000...|");
 
     return table;
 }
-
-//
-// Decode a 16-bit instruction
-//
-static coldfireInstructionType decode16(coldfireP coldfire, Uns16 instr16) {
-
-    static vmidDecodeTableP decodeTable16;
-
-    // create 16-bit instruction decode table if required
-    if(!decodeTable16) {
-        decodeTable16 = createDecodeTable16();
-    }
-    coldfireInstructionType type = vmidDecode(decodeTable16, instr16);
-
-    return type;
-}
-
-//
-// Decode a 32-bit instruction
-//
-static coldfireInstructionType decode32(coldfireP coldfire, Uns32 instr32) {
-
-    static vmidDecodeTableP decodeTable32;
-
-    // create 32-bit instruction decode table if required
-    if(!decodeTable32) {
-        decodeTable32 = createDecodeTable32();
-    }
-    coldfireInstructionType type = vmidDecode(decodeTable32, instr32);
-
-    return type;
-}
-
-//
-// Decode a 48-bit instruction
-//
-static coldfireInstructionType decode48(coldfireP coldfire, Uns64 instr48) {
-
-    static vmidDecodeTableP decodeTable48;
-
-    // create 48-bit instruction decode table if required
-    if(!decodeTable48) {
-        decodeTable48 = createDecodeTable48();
-    }
-    coldfireInstructionType type = vmidDecode(decodeTable48, instr48);
-
-    return type;
-}
-
 //
 // Return True if the instruction is a 16-bit instruction
 //
 inline static Bool is16BitInstruction(Uns16 msw) {
-    return ((msw>>11) >= 0x00);
+    return ((msw>>11) != 0x00);
 }
 //
 // Return True if the instruction is a 32-bit instruction
@@ -118,7 +64,26 @@ inline static Bool is32BitInstruction(Uns32 msw) {
 }
 
 //
-// Decode the coldfire instruction at the passed address
+// Decode a 48-bit instruction
+//
+static coldfireInstructionType decode(coldfireP coldfire, Uns16 instr) {
+
+    static vmidDecodeTableP decodeTable;
+
+    // create 48-bit instruction decode table if required
+    if(!decodeTable) {
+        decodeTable = createDecodeTable();
+    }
+    coldfireInstructionType type = vmidDecode(decodeTable, instr);
+
+    return type;
+}
+
+//
+// Decode the coldfire instruction at the passed address. If the decode succeeds,
+// dispatch it to the corresponding function in the dispatch table and return
+// True; otherwise, dispatch using the defaultCB and return False.
+//
 Bool coldfireDecode(
     coldfireP               coldfire,
     Uns32               thisPC,
@@ -130,12 +95,11 @@ Bool coldfireDecode(
     vmiProcessorP processor = (vmiProcessorP) coldfire;
     Uns16         instr16   = vmicxtFetch2Byte(processor, thisPC);
 
-
     // is this a 16-bit or 32-bit instruction?
     if(is16BitInstruction(instr16)) {
 
         // 16-bit instruction decode
-        coldfireInstructionType type = decode16(coldfire, instr16);
+        coldfireInstructionType type = decode(coldfire, instr16);
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, thisPC, instr16, userData);
             return True;
@@ -150,9 +114,8 @@ Bool coldfireDecode(
 
         // get 32-bit instruction
         Uns32 instr32 = (instr16<<16) | vmicxtFetch2Byte(processor, thisPC+2);
-
         // 32-bit instruction decode
-        coldfireInstructionType type = decode32(coldfire, instr32);
+        coldfireInstructionType type = decode(coldfire, instr16);
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, thisPC, instr32, userData);
             return True;
@@ -167,7 +130,7 @@ Bool coldfireDecode(
         Uns64 instr48 = ((Uns64) instr16<<32) | vmicxtFetch2Byte(processor, thisPC+4);
 
         // 48-bit instruction decode
-        coldfireInstructionType type = decode48(coldfire, instr48);
+        coldfireInstructionType type = decode(coldfire, instr16);
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, thisPC, instr48, userData);
             return True;
@@ -179,3 +142,27 @@ Bool coldfireDecode(
     }
     
 }
+
+Uns32 coldfireNextAddr(
+    coldfireP               coldfire,
+    Uns32               thisPC) {
+
+    // get the most-significant two bytes of the instruction
+    vmiProcessorP processor = (vmiProcessorP) coldfire;
+    Uns16         instr16   = vmicxtFetch2Byte(processor, thisPC);
+    Uns32         nextPC=0;
+
+    // is this a 16-bit or 32-bit instruction?
+    if(is16BitInstruction(instr16)) {
+        nextPC = thisPC + 2;
+
+    } 
+    else if(is32BitInstruction(instr16)){
+        nextPC = thisPC + 4;
+    }
+    else{
+        nextPC = thisPC + 6;
+    }
+    return nextPC;
+}
+

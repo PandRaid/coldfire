@@ -22,12 +22,10 @@
 
 // VMI header files
 #include "vmi/vmiAttrs.h"
-#include "vmi/vmiMessage.h"
 
 // model header files
 #include "coldfireStructure.h"
 #include "coldfireFunctions.h"
-
 
 //
 // Return number of members of an array
@@ -40,7 +38,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 //
-// Create MCF flexbus with 8 bit min and 16 bit max port size.
+// Template bus port list
 //
 const static vmiBusPort busPorts[] = {
     {"INSTRUCTION", vmi_BP_MASTER, vmi_DOM_CODE, {8,16}, 1},
@@ -95,13 +93,11 @@ VMI_BUS_PORT_SPECS_FN(coldfireGetBusPortSpec) {
 }
 
 //
-// OR1K processor constructor
+// coldfire processor constructor
 //
 VMI_CONSTRUCTOR_FN(coldfireConstructor) {
 
     coldfireP coldfire = (coldfireP)processor;
-
-    vmiPrintf("%s called, initializing registers\n", FUNC_NAME);
     Uns32 i;
 
     for(i=0; i<(COLDFIRE_REGSD); i++) {
@@ -116,14 +112,13 @@ VMI_CONSTRUCTOR_FN(coldfireConstructor) {
 }
 
 //
-// OR1K processor destructor
+// coldfire processor destructor
 //
 VMI_DESTRUCTOR_FN(coldfireDestructor) {
 
     coldfireP coldfire = (coldfireP)processor;
 
-    vmiPrintf("%s called\n", FUNC_NAME);
-
     // free bus port specifications
     freeBusPorts(coldfire);
 }
+

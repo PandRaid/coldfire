@@ -20,25 +20,23 @@
 #define COLDFIRE_STRUCTURE_H
 
 // VMI header files
-#include "hostapi/impTypes.h"
+#include "vmi/vmiTypes.h"
 
-//Register macros
 #define COLDFIRE_REGSA 8
 #define COLDFIRE_REGSD 8
 #define COLDFIRE_BITS 32
+
+// processor structure
+typedef struct coldfireS {
+    Uns32 regsD[COLDFIRE_REGSD]; // basic DATA registers
+	Uns32 regsA[COLDFIRE_REGSA]; // basic ADDRESS registers
+    vmiBusPortP busPorts;       // bus port descriptions
+} coldfire, *coldfireP;
 
 // macros to specify target registers in VARIABLE expressions
 #define COLDFIRE_OFFSET(_F) VMI_CPU_REG(coldfireP, _F)
 #define COLDFIRE_REGA(_R) COLDFIRE_OFFSET(regsA[_R])
 #define COLDFIRE_REGD(_R) COLDFIRE_OFFSET(regsD[_R])
-
-// processor structure
-typedef struct coldfireS {
-	Uns32 regsD[COLDFIRE_REGSD]; // basic DATA registers
-	Uns32 regsA[COLDFIRE_REGSA]; // basic ADDRESS registers
-	Uns8  CCR;
-    vmiBusPortP    busPorts;        // bus port descriptions
-} coldfire, *coldfireP;
 
 #endif
 
