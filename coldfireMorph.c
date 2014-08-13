@@ -31,7 +31,7 @@
 //
 // Emit code to implement a binary/signed 16 bit literal COLDFIRE instruction
 //
-static void doBinopSLit16(Uns32 instr, vmiBinop op){
+static void doBinopSLit16(Uns64 instr, vmiBinop op){
 
     Uns8 mode = OP2_MODE(instr);
     Uns32 rd;
@@ -72,7 +72,7 @@ static void doBinopSLit48(Uns64 instr, vmiBinop op){
 // Handle arithmetic instructions
 //
 static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(instr, vmi_ADD);}
-static COLDFIRE_DISPATCH_FN64(morphADDI) {doBinopSLit48(instr, vmi_ADD);}
+static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(instr, vmi_ADD);}
 
 //
 // COLDFIRE morpher dispatch table
@@ -89,14 +89,14 @@ static coldfireDispatchTableC dispatchTable = {
 static void undecoded(
     vmiProcessorP processor,
     Uns32         thisPC,
-    Uns32         instruction
+    Uns64         instruction
 ) {
     // report that undecoded instruction was encountered
     vmiPrintf(
-        "CPU '%s' 0x%08x:0x%08x *** undecoded instruction: exiting ***\n",
+        "CPU '%s' 0x%08x:0x%08llx *** undecoded instruction: exiting ***\n",
         vmirtProcessorName(processor),
         thisPC,
-        instruction
+        (unsigned long long) instruction
     );
 
     // exit the CPU

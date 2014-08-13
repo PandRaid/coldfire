@@ -19,6 +19,8 @@
 // VMI header files
 #include "vmi/vmiCxt.h"
 #include "vmi/vmiDecode.h"
+#include "vmi/vmiMessage.h"
+#include <stdint.h>
 
 // model header files
 #include "coldfireDecode.h"
@@ -93,7 +95,7 @@ Bool coldfireDecode(
 
     // get the most-significant two bytes of the instruction
     vmiProcessorP processor = (vmiProcessorP) coldfire;
-    Uns16         instr16   = vmicxtFetch2Byte(processor, thisPC);
+    Uns64         instr16   = vmicxtFetch2Byte(processor, thisPC);
 
     // is this a 16-bit or 32-bit instruction?
     if(is16BitInstruction(instr16)) {
@@ -113,7 +115,7 @@ Bool coldfireDecode(
     else if(is32BitInstruction(instr16)){
 
         // get 32-bit instruction
-        Uns32 instr32 = (instr16<<16) | vmicxtFetch2Byte(processor, thisPC+2);
+        Uns64 instr32 = (instr16<<16) | vmicxtFetch2Byte(processor, thisPC+2);
         // 32-bit instruction decode
         coldfireInstructionType type = decode(coldfire, instr16);
         if(type!=COLDFIRE_LAST) {
@@ -127,10 +129,13 @@ Bool coldfireDecode(
     }
     else{
         // get 48-bit instruction
-        Uns64 instr48 = ((Uns64) instr16<<32) | vmicxtFetch4Byte(processor, thisPC+2);
-
+        uint64_t IMM = vmicxtFetch4Byte(processor, thisPC+2);
+        uint64_t shiftedInstr = ((uint64_t) instr16) << 32;
+        uint64_t instr48 = IMM | shiftedInstr;
         // 48-bit instruction decode
         coldfireInstructionType type = decode(coldfire, instr16);
+        //if(type == COLDFIRE_ADDI)
+          //  vmiPrintf("Instr16 %x IMM %llx Instr 64 %12llx\n", (unsigned) instr16, (unsigned long long) IMM, (unsigned long long) instr48);
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, thisPC, instr48, userData);
             return True;
