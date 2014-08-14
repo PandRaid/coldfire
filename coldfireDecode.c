@@ -54,13 +54,22 @@ static vmidDecodeTableP createDecodeTable(void) {
 //
 // Return True if the instruction is a 16-bit instruction
 //
-inline static Bool is16BitInstruction(Uns16 msw) {
-    return ((msw>>11) != 0x00);
+inline static Bool is16BitInstruction(Uns16 msw, coldfireInstructionType type) {
+    Bool bit16=False;
+    switch(type){
+        case COLDFIRE_ADD:
+            bit16=True;
+            break;
+        default:
+            bit16=False;
+    }
+
+    return bit16;
 }
 //
 // Return True if the instruction is a 32-bit instruction
 //
-inline static Bool is32BitInstruction(Uns32 msw) {
+inline static Bool is32BitInstruction(Uns32 msw, coldfireInstructionType type) {
     //needs implementation
     return False;
 }
@@ -96,12 +105,11 @@ Bool coldfireDecode(
     // get the most-significant two bytes of the instruction
     vmiProcessorP processor = (vmiProcessorP) coldfire;
     Uns64         instr16   = vmicxtFetch2Byte(processor, thisPC);
+    coldfireInstructionType type = decode(coldfire, instr16);
 
     // is this a 16-bit or 32-bit instruction?
-    if(is16BitInstruction(instr16)) {
+    if(is16BitInstruction(instr16, type)) {
 
-        // 16-bit instruction decode
-        coldfireInstructionType type = decode(coldfire, instr16);
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, thisPC, instr16, userData);
             return True;
@@ -112,12 +120,11 @@ Bool coldfireDecode(
         }
 
     } 
-    else if(is32BitInstruction(instr16)){
+    else if(is32BitInstruction(instr16, type)){
 
         // get 32-bit instruction
         Uns64 instr32 = (instr16<<16) | vmicxtFetch2Byte(processor, thisPC+2);
-        // 32-bit instruction decode
-        coldfireInstructionType type = decode(coldfire, instr16);
+
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, thisPC, instr32, userData);
             return True;
@@ -132,8 +139,7 @@ Bool coldfireDecode(
         uint64_t IMM = vmicxtFetch4Byte(processor, thisPC+2);
         uint64_t shiftedInstr = ((uint64_t) instr16) << 32;
         uint64_t instr48 = IMM | shiftedInstr;
-        // 48-bit instruction decode
-        coldfireInstructionType type = decode(coldfire, instr16);
+
         //if(type == COLDFIRE_ADDI)
           //  vmiPrintf("Instr16 %x IMM %llx Instr 64 %12llx\n", (unsigned) instr16, (unsigned long long) IMM, (unsigned long long) instr48);
         if(type!=COLDFIRE_LAST) {
@@ -155,14 +161,15 @@ Uns32 coldfireNextAddr(
     // get the most-significant two bytes of the instruction
     vmiProcessorP processor = (vmiProcessorP) coldfire;
     Uns16         instr16   = vmicxtFetch2Byte(processor, thisPC);
+    coldfireInstructionType type = decode(coldfire, instr16);
     Uns32         nextPC=0;
 
     // is this a 16-bit or 32-bit instruction?
-    if(is16BitInstruction(instr16)) {
+    if(is16BitInstruction(instr16, type)) {
         nextPC = thisPC + 2;
 
     } 
-    else if(is32BitInstruction(instr16)){
+    else if(is32BitInstruction(instr16, type)){
         nextPC = thisPC + 4;
     }
     else{

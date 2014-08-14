@@ -16,6 +16,9 @@ VMI_ENDIAN_FN(coldfireGetEndian);
 VMI_NEXT_PC_FN(coldfireNextInstruction);
 VMI_DISASSEMBLE_FN(coldfireDisassemble);
 
+// register access
+VMI_DEBUG_FN(coldfireDumpRegisters);
+
 // port functions
 VMI_BUS_PORT_SPECS_FN(coldfireGetBusPortSpec);
 

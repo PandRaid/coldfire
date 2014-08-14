@@ -57,7 +57,7 @@ static void doBinopSLit48(char *buffer, Uns64 instr, char *coldfireop) {
     Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
     Uns32 IMMU = OP3_IMMU(instr);
-    Uns32 Total = IMML + IMMU;
+    Uns32 Total = (IMMU << 16) | IMML;
 
     sprintf(buffer, "%-8s #%u,r%u", coldfireop, Total, (unsigned) rd);
 }

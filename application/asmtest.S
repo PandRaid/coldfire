@@ -19,6 +19,7 @@
 .global _start
 _start:	addi.l     #64, %d2
 		add.l      %d1, %d2
+		addi.l     #0xFFFFFFFF, %d2
 .global exit
 exit:
 		add.l      %d1, %d0

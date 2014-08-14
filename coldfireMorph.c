@@ -29,9 +29,23 @@
 #include "coldfireStructure.h"
 
 //
+// Update carry & overflow flags
+//
+const vmiFlags flagsCO = {
+    COLDFIRE_CARRY_CONST,           // offset to carry in flag
+    {
+        COLDFIRE_CARRY_CONST,       // offset to carry out flag
+        VMI_NOFLAG_CONST,       // parity flag not used
+        VMI_NOFLAG_CONST,       // zero flag not used
+        VMI_NOFLAG_CONST,       // sign flag not used
+        COLDFIRE_OVERFLOW_CONST     // offset to overflow flag
+    }
+};
+
+//
 // Emit code to implement a binary/signed 16 bit literal COLDFIRE instruction
 //
-static void doBinopSLit16(Uns64 instr, vmiBinop op){
+static void doBinopSLit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags){
 
     Uns8 mode = OP2_MODE(instr);
     Uns32 rd;
@@ -49,7 +63,7 @@ static void doBinopSLit16(Uns64 instr, vmiBinop op){
         rs = OP2_R2(instr);
     }
     vmiReg target = COLDFIRE_REGD(rd);
-    vmimtBinopRRR(COLDFIRE_BITS, op, COLDFIRE_REGD(rs), COLDFIRE_REGD(rs), target, 0);
+    vmimtBinopRRR(COLDFIRE_BITS, op, COLDFIRE_REGD(rs), COLDFIRE_REGD(rs), target, flags);
 
 
 }
@@ -57,22 +71,22 @@ static void doBinopSLit16(Uns64 instr, vmiBinop op){
 //
 // Emit code to implement a binary/signed 48 bit literal COLDFIRE instruction
 //
-static void doBinopSLit48(Uns64 instr, vmiBinop op){
+static void doBinopSLit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags){
 
     Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
     Uns32 IMMU = OP3_IMMU(instr);
-    Uns32 Total = IMMU + IMML;
+    Uns32 Total = (IMMU << 16) | IMML;
 
     vmiReg target = COLDFIRE_REGD(rd);
-    vmimtBinopRRC(COLDFIRE_BITS, op, target, target, Total, 0);
+    vmimtBinopRRC(COLDFIRE_BITS, op, target, target, Total, flags);
 }
 
 //
 // Handle arithmetic instructions
 //
-static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(instr, vmi_ADD);}
-static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(instr, vmi_ADD);}
+static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(instr, vmi_ADD, &flagsCO);}
+static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(instr, vmi_ADD, &flagsCO);}
 
 //
 // COLDFIRE morpher dispatch table

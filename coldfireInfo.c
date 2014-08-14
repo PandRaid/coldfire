@@ -37,7 +37,7 @@ VMI_PROC_INFO_FN(coldfireProcInfo) {
         .elfCode          = 33906,
         .endianFixed      = True,
         .endian           = MEM_ENDIAN_BIG,
-        .gdbPath          = "$IMPERAS_HOME/lib/$IMPERAS_ARCH/CrossCompiler/or32-elf/bin/or32-elf-gdb" VMI_EXE_SUFFIX,
+        .gdbPath          = "$IMPERAS_HOME/lib/$IMPERAS_ARCH/CrossCompiler/m68k-elf/bin/m68k-elf-gdb" VMI_EXE_SUFFIX,
         .family           = "openCores",
     };
     return &info;

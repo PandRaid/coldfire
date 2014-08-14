@@ -107,6 +107,9 @@ VMI_CONSTRUCTOR_FN(coldfireConstructor) {
         coldfire->regsD[i] = 0x00000001;
     }
 
+    //initialize SR
+    coldfire->CCR = 0b00000000;
+
     // create bus port specifications
     newBusPorts(coldfire);
 }
