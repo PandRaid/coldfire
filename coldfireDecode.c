@@ -46,9 +46,13 @@ static vmidDecodeTableP createDecodeTable(void) {
     vmidDecodeTableP table = vmidNewDecodeTable(16, COLDFIRE_LAST);
 
     // handle arithmetic instructions (second argument constant)
-    DECODE_ENTRY(0, ADD,   "|1101............|"); 
+    DECODE_ENTRY(0, ADD,   "|1101....10......|"); 
     DECODE_ENTRY(0, ADDI,  "|0000011010000...|");
+    DECODE_ENTRY(0, ADDA,   "|1101...111......|");
     
+    DECODE_ENTRY(0, AND,   "|1100....10......|");
+    DECODE_ENTRY(0, ANDI,  "|0000001010000...|");
+
     // handle branch instructions
     DECODE_ENTRY(0, J,     "|0100111011......|");
 
@@ -59,9 +63,10 @@ void static getInstructionLength(coldfireInstructionInfoP info){
     Uns16 msw = info->instruction;
     switch(info->type){
         //variable bit
+        case COLDFIRE_ADDA:
         case COLDFIRE_ADD:
+        case COLDFIRE_AND:
         case COLDFIRE_J:
-            vmiPrintf("Instr16 %x\n", (unsigned) msw);
             if((msw & 0x003F) != 0x003a)
                 info->instrSize = 16;
             else if((msw & 0x003F) == 0x003a)
@@ -70,6 +75,7 @@ void static getInstructionLength(coldfireInstructionInfoP info){
         //Fixed 16 bit
         //Fixed 32 bit
         //Fixed 48 Bit
+        case COLDFIRE_ANDI:
         case COLDFIRE_ADDI:
             info->instrSize = 48;
         default:

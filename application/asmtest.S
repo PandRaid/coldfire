@@ -18,6 +18,8 @@
 
 .global _start
 _start:	addi.l     #64, %d2
+		and.l 	   %d1, %d0
+		andi.l 	   #129, %d2
 		add.l      %d1, %d2
 		jmp			exit
 		addi.l     #0xFFFFFFFF, %d2

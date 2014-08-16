@@ -43,9 +43,9 @@ const vmiFlags flagsCO = {
 };
 
 //
-// Emit code to implement a binary/signed 16 bit literal COLDFIRE instruction
+// Emit code to implement a binary/unsigned 16 bit literal COLDFIRE instruction
 //
-static void doBinopSLit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
+static void doBinopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
 
     Uns8 mode = OP2_MODE(instr);
     Uns32 rd;
@@ -62,16 +62,21 @@ static void doBinopSLit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instr
         rd = OP2_R1(instr); 
         rs = OP2_R2(instr);
     }
+
     vmiReg target = COLDFIRE_REGD(rd);
+    if(mode == 7){
+        target = COLDFIRE_REGA(rd);
+    }
+
     vmimtBinopRRR(COLDFIRE_BITS, op, COLDFIRE_REGD(rs), COLDFIRE_REGD(rs), target, flags);
 
 
 }
 
 //
-// Emit code to implement a binary/signed 48 bit literal COLDFIRE instruction
+// Emit code to implement a binary/unsigned 48 bit literal COLDFIRE instruction
 //
-static void doBinopSLit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
+static void doBinopULit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
 
     Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
@@ -118,8 +123,11 @@ static void doJump(
 //
 // Handle arithmetic instructions
 //
-static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
-static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopULit16(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopULit48(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphADDA) {doBinopULit16(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphAND) {doBinopULit16(info->instruction, vmi_AND, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphANDI) {doBinopULit48(info->instruction, vmi_AND, &flagsCO, info->instrSize);}
 
 //
 // Handle branch instructions
@@ -133,6 +141,9 @@ static coldfireDispatchTableC dispatchTable = {
     // handle arithmetic instructions
     [COLDFIRE_ADD]  = morphADD,
     [COLDFIRE_ADDI] = morphADDI,
+    [COLDFIRE_ADDA]  = morphADDA,
+    [COLDFIRE_ANDI] = morphANDI,
+    [COLDFIRE_AND]  = morphAND,
     // handle branch instructions
     [COLDFIRE_J]     = morphJ,
 };
