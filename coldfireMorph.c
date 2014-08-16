@@ -45,7 +45,7 @@ const vmiFlags flagsCO = {
 //
 // Emit code to implement a binary/signed 16 bit literal COLDFIRE instruction
 //
-static void doBinopSLit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags){
+static void doBinopSLit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
 
     Uns8 mode = OP2_MODE(instr);
     Uns32 rd;
@@ -71,7 +71,7 @@ static void doBinopSLit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags){
 //
 // Emit code to implement a binary/signed 48 bit literal COLDFIRE instruction
 //
-static void doBinopSLit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags){
+static void doBinopSLit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
 
     Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
@@ -83,10 +83,48 @@ static void doBinopSLit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags){
 }
 
 //
+// Emit code for a jump instruction
+//
+static void doJump(
+    Uns64 instr,
+    Uns32 thisPC,
+    Bool  link, 
+    Uns8 instrLength
+) {
+    vmiReg      linkReg     = link ? COLDFIRE_LINKREGA : VMI_NOREG;
+    vmiJumpHint hint;
+
+    // select an appropriate jump hint
+    if(link) {
+        hint = vmi_JH_CALL;
+    } else {
+        hint = vmi_JH_NONE;
+    }
+
+    if(instrLength == 16){
+        Uns32 reg = OP7_REGA(instr);
+        vmiReg source = COLDFIRE_REGA(reg);
+        Uns32 nextAddress = thisPC + 2;
+        vmimtUncondJumpReg(nextAddress,source, linkReg, hint);
+    }
+    else if(instrLength == 32){
+        Uns32 offset = OP7_EXT16(instr);
+        Uns32 nextAddress = thisPC + 4;
+        Uns32 toAddress = thisPC + offset + 2;
+        vmimtUncondJump(nextAddress,toAddress, linkReg, hint);
+    }
+}
+
+//
 // Handle arithmetic instructions
 //
-static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(instr, vmi_ADD, &flagsCO);}
-static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(instr, vmi_ADD, &flagsCO);}
+static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopSLit16(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopSLit48(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
+
+//
+// Handle branch instructions
+//
+static COLDFIRE_DISPATCH_FN(morphJ)     {doJump(info->instruction, info->thisPC, False, info->instrSize);}
 
 //
 // COLDFIRE morpher dispatch table
@@ -94,7 +132,9 @@ static coldfireDispatchTableC dispatchTable = {
 
     // handle arithmetic instructions
     [COLDFIRE_ADD]  = morphADD,
-    [COLDFIRE_ADDI] = morphADDI
+    [COLDFIRE_ADDI] = morphADDI,
+    // handle branch instructions
+    [COLDFIRE_J]     = morphJ,
 };
 
 //
@@ -124,8 +164,8 @@ static COLDFIRE_DISPATCH_FN(morphDefault) {
 
     // print message warning about the undecoded instruction
     vmimtArgProcessor();
-    vmimtArgUns32((Uns32)thisPC);
-    vmimtArgUns32(instr);
+    vmimtArgUns32(info->thisPC);
+    vmimtArgUns32(info->instruction);
     vmimtCall((vmiCallFn)undecoded);
 }
 
@@ -134,5 +174,7 @@ static COLDFIRE_DISPATCH_FN(morphDefault) {
 // by 'thisPC'.
 //
 VMI_MORPH_FN(coldfireMorphInstruction) {
-    coldfireDecode((coldfireP)processor, thisPC, &dispatchTable, morphDefault, 0);
+    coldfireInstructionInfo info = {0};
+    info.thisPC = thisPC;
+    coldfireDecode((coldfireP)processor, &dispatchTable, morphDefault, &info, 0);
 }

@@ -28,18 +28,6 @@
 #include "coldfireStructure.h"
 
 //
-// Dispatcher callback type
-//
-#define COLDFIRE_DISPATCH_FN(_NAME) void _NAME( \
-    coldfireP coldfire,     \
-    Uns32 thisPC,   \
-    Uns64 instr,    \
-    void *userData  \
-)
-typedef COLDFIRE_DISPATCH_FN((*coldfireDispatchFn));
-
-
-//
 // Instruction type enumeration
 //
 typedef enum coldfireInstructionTypeE {
@@ -50,6 +38,9 @@ typedef enum coldfireInstructionTypeE {
     //INTEGER INSTRUCTIONS 32 bit
     //INTEGER INSTRUCTIONS 48 bit
     COLDFIRE_ADDI,
+
+    //JUMP INSTRUCTIONS
+    COLDFIRE_J,
 
     //Fall through for 16,32,48 bit
     COLDFIRE_INSTR16,
@@ -62,10 +53,15 @@ typedef enum coldfireInstructionTypeE {
 } coldfireInstructionType;
 
 //
-// Dispatch table
+// Instruction type enumeration
 //
-typedef const coldfireDispatchFn coldfireDispatchTableC[COLDFIRE_LAST];
-typedef coldfireDispatchTableC *coldfireDispatchTableCP;
+typedef enum coldfireLengthE {
+
+    COLDFIRE_16,
+    COLDFIRE_32,
+    COLDFIRE_48,
+
+} coldfireInstructionLength;
 
 //
 // info structure accessed from decoder
@@ -78,10 +74,29 @@ typedef struct coldfireInstructionInfoS {
     Uns32 thisPC;
     Uns32 nextPC;
     Uns64 instruction;
-    Uns8  instrsize;
+    Uns8  instrSize;
     coldfireInstructionType type;
 
 } coldfireInstructionInfo;
+
+typedef coldfireInstructionInfo *coldfireInstructionInfoP;
+
+//
+// Dispatcher callback type
+//
+#define COLDFIRE_DISPATCH_FN(_NAME) void _NAME( \
+    coldfireP coldfire,     \
+    coldfireInstructionInfoP info,   \
+    void *userData  \
+)
+typedef COLDFIRE_DISPATCH_FN((*coldfireDispatchFn));
+
+
+//
+// Dispatch table
+//
+typedef const coldfireDispatchFn coldfireDispatchTableC[COLDFIRE_LAST];
+typedef coldfireDispatchTableC *coldfireDispatchTableCP;
 
 //
 // Decode the coldfire instruction at the passed address. If the decode succeeds,
@@ -90,15 +105,15 @@ typedef struct coldfireInstructionInfoS {
 //
 Bool coldfireDecode(
     coldfireP               coldfire,
-    Uns32               thisPC,
     coldfireDispatchTableCP table,
     coldfireDispatchFn      defaultCB,
+    coldfireInstructionInfoP   info,
     void               *userData
 );
 
 Uns32 coldfireNextAddr(
     coldfireP               coldfire,
-    Uns32               thisPC);
+    coldfireInstructionInfoP   info);
 
 #endif
 

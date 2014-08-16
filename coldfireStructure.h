@@ -50,6 +50,7 @@ typedef struct coldfireS {
 #define COLDFIRE_ZERO				COLDFIRE_OFFSET(zeroFlag)
 #define COLDFIRE_SIGN				COLDFIRE_OFFSET(signFlag)
 #define COLDFIRE_TEMP				COLDFIRE_OFFSET(tempFlag)
+#define COLDFIRE_LINKREGA            COLDFIRE_REGA(COLDFIRE_LINK)
 
 // macros to specify target registers in CONSTANT expressions
 #define COLDFIRE_OFFSET_CONST(_F) 		VMI_CPU_REG_CONST(coldfireP, _F)

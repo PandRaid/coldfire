@@ -89,7 +89,9 @@ VMI_ENDIAN_FN(coldfireGetEndian) {
 // Return the next instruction address after 'thisPC'.
 //
 VMI_NEXT_PC_FN(coldfireNextInstruction) {
-    Uns32 nextAddress = coldfireNextAddr((coldfireP)processor, thisPC);
+    coldfireInstructionInfo info = {0};
+    info.thisPC = thisPC;
+    Uns32 nextAddress = coldfireNextAddr((coldfireP)processor, &info);
     return nextAddress;
 }
 

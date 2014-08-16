@@ -21,6 +21,7 @@
 
 // VMI header files
 #include "vmi/vmiCxt.h"
+#include "vmi/vmiMessage.h"
 
 // model header files
 #include "coldfireDecode.h"
@@ -29,7 +30,7 @@
 
 // Disassemble a binary/signed 16bit instruction
 //
-static void doBinopSLit16(char *buffer, Uns64 instr, char *coldfireop) {
+static void doBinopSLit16(char *buffer, Uns64 instr, char *coldfireop, Uns8 instrLength) {
 
     Uns8 mode = OP2_MODE(instr);
     Uns32 rd;
@@ -52,7 +53,7 @@ static void doBinopSLit16(char *buffer, Uns64 instr, char *coldfireop) {
 
 // Disassemble a binary/signed 48bit instruction
 //
-static void doBinopSLit48(char *buffer, Uns64 instr, char *coldfireop) {
+static void doBinopSLit48(char *buffer, Uns64 instr, char *coldfireop, Uns8 instrLength) {
 
     Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
@@ -63,10 +64,30 @@ static void doBinopSLit48(char *buffer, Uns64 instr, char *coldfireop) {
 }
 
 //
+// Disassemble a branch or jump instruction.
+//
+static void doBranchJump(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength){
+    if(instrLength == 16){
+        Uns32 reg = OP7_REGA(instr);
+        sprintf(buffer, "%-8s  a%u", coldfireop, reg);
+    }
+    else if(instrLength == 32){
+        Uns32 offset = OP7_EXT16(instr);
+        Uns32 toAddress = thisPC + offset;
+        sprintf(buffer, "%-8s  %x", coldfireop, toAddress);
+    }
+}
+
+//
 // Handle arithmetic instructions
 //
-static COLDFIRE_DISPATCH_FN(disADD)  {doBinopSLit16(userData, instr, "add.l");}
-static COLDFIRE_DISPATCH_FN(disADDI) {doBinopSLit48(userData, instr, "addi.l");}
+static COLDFIRE_DISPATCH_FN(disADD)  {doBinopSLit16(userData, info->instruction, "add.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disADDI) {doBinopSLit48(userData, info->instruction, "addi.l", info->instrSize);}
+
+//
+// Handle branch instructions
+//
+static COLDFIRE_DISPATCH_FN(disJ)     {doBranchJump(userData, info->thisPC, info->instruction, "jmp", info->instrSize);}
 
 //
 // COLDFIRE disassembler dispatch table
@@ -75,7 +96,9 @@ static coldfireDispatchTableC dispatchTable = {
 
     // handle arithmetic instructions
     [COLDFIRE_ADD] = disADD,
-    [COLDFIRE_ADDI]  = disADDI
+    [COLDFIRE_ADDI]  = disADDI,
+    // handle branch instructions
+    [COLDFIRE_J]     = disJ,
 };
 
 
@@ -88,7 +111,7 @@ static COLDFIRE_DISPATCH_FN(disDefault) {
     char *result = (char *)userData;
 
     // default disassembly just shows instruction pattern
-    sprintf(result, "??? instruction:0x%08llx", (unsigned long long) instr);
+    sprintf(result, "??? instruction:0x%08llx", (unsigned long long) info->instruction);
 }
 
 //
@@ -98,9 +121,11 @@ VMI_DISASSEMBLE_FN(coldfireDisassemble) {
     
     // static buffer to hold disassembly result
     static char result[256];
+    coldfireInstructionInfo info = {0};
+    info.thisPC = thisPC;
 
     // disassemble, filling the result buffer
-    coldfireDecode((coldfireP)processor, thisPC, &dispatchTable, disDefault, &result);
+    coldfireDecode((coldfireP)processor, &dispatchTable, disDefault, &info, &result);
 
     // return the result
     return result;

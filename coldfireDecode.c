@@ -48,32 +48,34 @@ static vmidDecodeTableP createDecodeTable(void) {
     // handle arithmetic instructions (second argument constant)
     DECODE_ENTRY(0, ADD,   "|1101............|"); 
     DECODE_ENTRY(0, ADDI,  "|0000011010000...|");
+    
+    // handle branch instructions
+    DECODE_ENTRY(0, J,     "|0100111011......|");
 
     return table;
 }
-//
-// Return True if the instruction is a 16-bit instruction
-//
-inline static Bool is16BitInstruction(Uns16 msw, coldfireInstructionType type) {
-    Bool bit16=False;
-    switch(type){
+
+void static getInstructionLength(coldfireInstructionInfoP info){
+    Uns16 msw = info->instruction;
+    switch(info->type){
+        //variable bit
         case COLDFIRE_ADD:
-            bit16=True;
+        case COLDFIRE_J:
+            vmiPrintf("Instr16 %x\n", (unsigned) msw);
+            if((msw & 0x003F) != 0x003a)
+                info->instrSize = 16;
+            else if((msw & 0x003F) == 0x003a)
+                info->instrSize = 32;
             break;
+        //Fixed 16 bit
+        //Fixed 32 bit
+        //Fixed 48 Bit
+        case COLDFIRE_ADDI:
+            info->instrSize = 48;
         default:
-            bit16=False;
+            info->instrSize = 48;
     }
-
-    return bit16;
 }
-//
-// Return True if the instruction is a 32-bit instruction
-//
-inline static Bool is32BitInstruction(Uns32 msw, coldfireInstructionType type) {
-    //needs implementation
-    return False;
-}
-
 //
 // Decode an instruction
 //
@@ -97,40 +99,47 @@ static coldfireInstructionType decode(coldfireP coldfire, Uns16 instr) {
 //
 Bool coldfireDecode(
     coldfireP               coldfire,
-    Uns32               thisPC,
     coldfireDispatchTableCP table,
     coldfireDispatchFn      defaultCB,
+    coldfireInstructionInfoP info,
     void               *userData) {
 
     // get the most-significant two bytes of the instruction
     vmiProcessorP processor = (vmiProcessorP) coldfire;
+    Uns32 thisPC = info->thisPC;
     Uns64         instr16   = vmicxtFetch2Byte(processor, thisPC);
     coldfireInstructionType type = decode(coldfire, instr16);
+    info->type = type;
+    info->instruction = instr16;
+    getInstructionLength(info);
 
     // is this a 16-bit or 32-bit instruction?
-    if(is16BitInstruction(instr16, type)) {
+    if(info->instrSize == 16) {
+        info->instruction = instr16;
 
         if(type!=COLDFIRE_LAST) {
-            ((*table)[type])(coldfire, thisPC, instr16, userData);
+            ((*table)[type])(coldfire, info, userData);
             return True;
         } 
         else {
-            defaultCB(coldfire, thisPC, instr16, userData);
+            defaultCB(coldfire, info, userData);
             return False;
         }
 
     } 
-    else if(is32BitInstruction(instr16, type)){
+    else if(info->instrSize == 32){
 
         // get 32-bit instruction
         Uns64 instr32 = (instr16<<16) | vmicxtFetch2Byte(processor, thisPC+2);
+        info->instruction = instr32;
+
 
         if(type!=COLDFIRE_LAST) {
-            ((*table)[type])(coldfire, thisPC, instr32, userData);
+            ((*table)[type])(coldfire, info, userData);
             return True;
         } 
         else {
-            defaultCB(coldfire, thisPC, instr32, userData);
+            defaultCB(coldfire, info, userData);
             return False;
         }
     }
@@ -139,15 +148,14 @@ Bool coldfireDecode(
         uint64_t IMM = vmicxtFetch4Byte(processor, thisPC+2);
         uint64_t shiftedInstr = ((uint64_t) instr16) << 32;
         uint64_t instr48 = IMM | shiftedInstr;
+        info->instruction = instr48;
 
-        //if(type == COLDFIRE_ADDI)
-          //  vmiPrintf("Instr16 %x IMM %llx Instr 64 %12llx\n", (unsigned) instr16, (unsigned long long) IMM, (unsigned long long) instr48);
         if(type!=COLDFIRE_LAST) {
-            ((*table)[type])(coldfire, thisPC, instr48, userData);
+            ((*table)[type])(coldfire, info, userData);
             return True;
         } 
         else {
-            defaultCB(coldfire, thisPC, instr48, userData);
+            defaultCB(coldfire, info, userData);
             return False;
         }
     }
@@ -156,25 +164,27 @@ Bool coldfireDecode(
 
 Uns32 coldfireNextAddr(
     coldfireP               coldfire,
-    Uns32               thisPC) {
+    coldfireInstructionInfoP    info) {
 
     // get the most-significant two bytes of the instruction
     vmiProcessorP processor = (vmiProcessorP) coldfire;
-    Uns16         instr16   = vmicxtFetch2Byte(processor, thisPC);
-    coldfireInstructionType type = decode(coldfire, instr16);
-    Uns32         nextPC=0;
+    info->instruction   = vmicxtFetch2Byte(processor, info->thisPC);
+    info->type = decode(coldfire, info->instruction);
+    getInstructionLength(info);
 
     // is this a 16-bit or 32-bit instruction?
-    if(is16BitInstruction(instr16, type)) {
-        nextPC = thisPC + 2;
-
+    if(info->instrSize == 16) {
+        info->nextPC = info->thisPC + 2;
     } 
-    else if(is32BitInstruction(instr16, type)){
-        nextPC = thisPC + 4;
+    else if(info->instrSize == 32){
+        info->nextPC = info->thisPC + 4;
+    }
+    else if(info->instrSize == 48){
+        info->nextPC = info->thisPC + 6;
     }
     else{
-        nextPC = thisPC + 6;
+        info->nextPC = info->thisPC + 2;
     }
-    return nextPC;
+    return info->nextPC;
 }
 
