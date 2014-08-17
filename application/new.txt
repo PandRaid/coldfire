@@ -1,0 +1,13 @@
+
+asmtest.o:     file format elf32-m68k
+
+Disassembly of section .text:
+
+00000000 <_start>:
+   0:	0682 0000 0040 	addil #64,%d2
+   6:	d481           	addl %d1,%d2
+   8:	4efa 0008      	jmp %pc@(12 <exit>)
+   c:	0682 ffff ffff 	addil #-1,%d2
+
+00000012 <exit>:
+  12:	d081           	addl %d1,%d0
