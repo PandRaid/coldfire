@@ -48,7 +48,13 @@ static void doBinopULit16(char *buffer, Uns64 instr, char *coldfireop, Uns8 inst
         rs = OP2_R2(instr);
     }
 
-    sprintf(buffer, "%-8s r%u,r%u", coldfireop, rd, rs);
+    //if using address registers print with that format
+    if(mode == 7){
+        sprintf(buffer, "%-8s d%u,a%u", coldfireop, rd, rs);
+    }
+    else{
+        sprintf(buffer, "%-8s d%u,d%u", coldfireop, rd, rs);
+    }
 }
 
 // Disassemble a binary/unsigned 48bit instruction
@@ -60,7 +66,7 @@ static void doBinopULit48(char *buffer, Uns64 instr, char *coldfireop, Uns8 inst
     Uns32 IMMU = OP3_IMMU(instr);
     Uns32 Total = (IMMU << 16) | IMML;
 
-    sprintf(buffer, "%-8s #%u,r%u", coldfireop, Total, (unsigned) rd);
+    sprintf(buffer, "%-8s #%u,d%u", coldfireop, Total, (unsigned) rd);
 }
 
 //
@@ -84,8 +90,14 @@ static void doBranchJump(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfire
 static COLDFIRE_DISPATCH_FN(disADD)  {doBinopULit16(userData, info->instruction, "add.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disADDA) {doBinopULit16(userData, info->instruction, "adda.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disAND)  {doBinopULit16(userData, info->instruction, "and.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disOR)   {doBinopULit16(userData, info->instruction, "or.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disSUB)  {doBinopULit16(userData, info->instruction, "sub.l", info->instrSize);}
+
+
 static COLDFIRE_DISPATCH_FN(disANDI) {doBinopULit48(userData, info->instruction, "andi.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disADDI) {doBinopULit48(userData, info->instruction, "addi.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disORI) {doBinopULit48(userData, info->instruction, "ori.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disSUBI) {doBinopULit48(userData, info->instruction, "subi.l", info->instrSize);}
 
 //
 // Handle branch instructions
@@ -99,10 +111,16 @@ static coldfireDispatchTableC dispatchTable = {
 
     // handle arithmetic instructions
     [COLDFIRE_ADD] = disADD,
-    [COLDFIRE_ADDI]  = disADDI,
-    [COLDFIRE_AND] = disAND,
-    [COLDFIRE_ANDI]  = disANDI,
     [COLDFIRE_ADDA] = disADDA,
+    [COLDFIRE_AND] = disAND,
+    [COLDFIRE_OR]  = disOR,
+    [COLDFIRE_SUB]  = disSUB,
+
+    //handle immediate instructions
+    [COLDFIRE_ADDI]  = disADDI,
+    [COLDFIRE_ANDI]  = disANDI,
+    [COLDFIRE_ORI]  = disORI,
+    [COLDFIRE_SUBI]  = disSUBI,
     // handle branch instructions
     [COLDFIRE_J]     = disJ,
 };

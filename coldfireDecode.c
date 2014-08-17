@@ -45,13 +45,18 @@ static vmidDecodeTableP createDecodeTable(void) {
     
     vmidDecodeTableP table = vmidNewDecodeTable(16, COLDFIRE_LAST);
 
-    // handle arithmetic instructions (second argument constant)
+    // handle arithmetic instructions
     DECODE_ENTRY(0, ADD,   "|1101....10......|"); 
-    DECODE_ENTRY(0, ADDI,  "|0000011010000...|");
-    DECODE_ENTRY(0, ADDA,   "|1101...111......|");
-    
+    DECODE_ENTRY(0, ADDA,  "|1101...111......|");
     DECODE_ENTRY(0, AND,   "|1100....10......|");
+    DECODE_ENTRY(0, SUB,   "|1001....10......|");
+    DECODE_ENTRY(0, OR,    "|1000....10......|");
+    
+    //handle immediate instr
     DECODE_ENTRY(0, ANDI,  "|0000001010000...|");
+    DECODE_ENTRY(0, ADDI,  "|0000011010000...|");
+    DECODE_ENTRY(0, ORI,   "|0000000010000...|");
+    DECODE_ENTRY(0, SUBI,  "|0000010010000...|");
 
     // handle branch instructions
     DECODE_ENTRY(0, J,     "|0100111011......|");

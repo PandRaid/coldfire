@@ -64,11 +64,13 @@ static void doBinopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instr
     }
 
     vmiReg target = COLDFIRE_REGD(rd);
+    vmiReg source = COLDFIRE_REGD(rs);
     if(mode == 7){
-        target = COLDFIRE_REGA(rd);
+        source = COLDFIRE_REGA(rs);
     }
 
-    vmimtBinopRRR(COLDFIRE_BITS, op, COLDFIRE_REGD(rs), COLDFIRE_REGD(rs), target, flags);
+
+    vmimtBinopRRR(COLDFIRE_BITS, op, source, source, target, flags);
 
 
 }
@@ -124,11 +126,16 @@ static void doJump(
 // Handle arithmetic instructions
 //
 static COLDFIRE_DISPATCH_FN(morphADD)  {doBinopULit16(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
-static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopULit48(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphADDA) {doBinopULit16(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphAND) {doBinopULit16(info->instruction, vmi_AND, &flagsCO, info->instrSize);}
-static COLDFIRE_DISPATCH_FN(morphANDI) {doBinopULit48(info->instruction, vmi_AND, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphOR) {doBinopULit16(info->instruction, vmi_OR, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphSUB) {doBinopULit16(info->instruction, vmi_SUB, &flagsCO, info->instrSize);}
 
+//Handle Immediate Instructions
+static COLDFIRE_DISPATCH_FN(morphANDI) {doBinopULit48(info->instruction, vmi_AND, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopULit48(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphORI) {doBinopULit48(info->instruction, vmi_OR, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphSUBI) {doBinopULit48(info->instruction, vmi_SUB, &flagsCO, info->instrSize);}
 //
 // Handle branch instructions
 //
@@ -139,11 +146,17 @@ static COLDFIRE_DISPATCH_FN(morphJ)     {doJump(info->instruction, info->thisPC,
 static coldfireDispatchTableC dispatchTable = {
 
     // handle arithmetic instructions
-    [COLDFIRE_ADD]  = morphADD,
-    [COLDFIRE_ADDI] = morphADDI,
-    [COLDFIRE_ADDA]  = morphADDA,
-    [COLDFIRE_ANDI] = morphANDI,
-    [COLDFIRE_AND]  = morphAND,
+    [COLDFIRE_ADD] = morphADD,
+    [COLDFIRE_ADDA] = morphADDA,
+    [COLDFIRE_AND] = morphAND,
+    [COLDFIRE_OR]  = morphOR,
+    [COLDFIRE_SUB]  = morphSUB,
+
+    //handle immediate instructions
+    [COLDFIRE_ADDI]  = morphADDI,
+    [COLDFIRE_ANDI]  = morphANDI,
+    [COLDFIRE_ORI]  = morphORI,
+    [COLDFIRE_SUBI]  = morphSUBI,
     // handle branch instructions
     [COLDFIRE_J]     = morphJ,
 };
