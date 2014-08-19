@@ -57,6 +57,17 @@ static void doBinopULit16(char *buffer, Uns64 instr, char *coldfireop, Uns8 inst
     }
 }
 
+//
+// Emit code to implement a binary/unsigned 16 bit literal COLDFIRE instruction with only one argument
+//
+static void doUnopULit16(char *buffer, Uns64 instr, char *coldfireop, Uns8 instrLength){
+    Uns32 rs = OP2_R1(instr);
+    
+    sprintf(buffer, "%-8s d%u", coldfireop, rs);
+
+
+}
+
 // Disassemble a binary/unsigned 48bit instruction
 //
 static void doBinopULit48(char *buffer, Uns64 instr, char *coldfireop, Uns8 instrLength) {
@@ -92,12 +103,18 @@ static COLDFIRE_DISPATCH_FN(disADDA) {doBinopULit16(userData, info->instruction,
 static COLDFIRE_DISPATCH_FN(disAND)  {doBinopULit16(userData, info->instruction, "and.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disOR)   {doBinopULit16(userData, info->instruction, "or.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disSUB)  {doBinopULit16(userData, info->instruction, "sub.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disMULU)  {doBinopULit16(userData, info->instruction, "mulu.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disDIVU) {doBinopULit16(userData, info->instruction, "divu.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disNOT)  {doUnopULit16(userData, info->instruction, "not.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disEOR)   {doBinopULit16(userData, info->instruction, "eor.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disSUBA)  {doBinopULit16(userData, info->instruction, "suba.l", info->instrSize);}
 
 
 static COLDFIRE_DISPATCH_FN(disANDI) {doBinopULit48(userData, info->instruction, "andi.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disADDI) {doBinopULit48(userData, info->instruction, "addi.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disORI) {doBinopULit48(userData, info->instruction, "ori.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disSUBI) {doBinopULit48(userData, info->instruction, "subi.l", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disEORI) {doBinopULit48(userData, info->instruction, "eori.l", info->instrSize);}
 
 //
 // Handle branch instructions
@@ -115,12 +132,18 @@ static coldfireDispatchTableC dispatchTable = {
     [COLDFIRE_AND] = disAND,
     [COLDFIRE_OR]  = disOR,
     [COLDFIRE_SUB]  = disSUB,
+    [COLDFIRE_DIVU] = disDIVU,
+    [COLDFIRE_MULU] = disMULU,
+    [COLDFIRE_EOR] = disEOR,
+    [COLDFIRE_NOT]  = disNOT,
+    [COLDFIRE_SUBA]  = disSUBA,
 
     //handle immediate instructions
     [COLDFIRE_ADDI]  = disADDI,
     [COLDFIRE_ANDI]  = disANDI,
     [COLDFIRE_ORI]  = disORI,
     [COLDFIRE_SUBI]  = disSUBI,
+    [COLDFIRE_EORI]  = disEORI,
     // handle branch instructions
     [COLDFIRE_J]     = disJ,
 };

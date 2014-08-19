@@ -38,6 +38,11 @@ typedef enum coldfireInstructionTypeE {
     COLDFIRE_AND,
     COLDFIRE_SUB,
     COLDFIRE_OR,
+    COLDFIRE_DIVU,
+    COLDFIRE_EOR,
+    COLDFIRE_MULU,
+    COLDFIRE_NOT,
+    COLDFIRE_SUBA,
 
     //INTEGER INSTRUCTIONS 32 bit
     //INTEGER INSTRUCTIONS 48 bit
@@ -45,6 +50,7 @@ typedef enum coldfireInstructionTypeE {
     COLDFIRE_ANDI,
     COLDFIRE_ORI,
     COLDFIRE_SUBI,
+    COLDFIRE_EORI,
 
     //JUMP INSTRUCTIONS
     COLDFIRE_J,

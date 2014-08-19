@@ -5,9 +5,19 @@ Disassembly of section .text:
 
 00000000 <_start>:
    0:	0682 0000 0040 	addil #64,%d2
-   6:	d481           	addl %d1,%d2
-   8:	4efa 0008      	jmp %pc@(12 <exit>)
-   c:	0682 ffff ffff 	addil #-1,%d2
+   6:	c081           	andl %d1,%d0
+   8:	9883           	subl %d3,%d4
+   a:	bb86           	eorl %d5,%d6
+   c:	4c03 4000      	mulul %d3,%d4
+  10:	4c43 4004      	remul %d3,%d4,%d4
+  14:	4685           	notl %d5
+  16:	0a87 0000 00ff 	eoril #255,%d7
+  1c:	d1c3           	addal %d3,%a0
+  1e:	93c3           	subal %d3,%a1
+  20:	0282 0000 0081 	andil #129,%d2
+  26:	d481           	addl %d1,%d2
+  28:	4efa 0008      	jmp %pc@(32 <exit>)
+  2c:	0682 ffff ffff 	addil #-1,%d2
 
-00000012 <exit>:
-  12:	d081           	addl %d1,%d0
+00000032 <exit>:
+  32:	d081           	addl %d1,%d0

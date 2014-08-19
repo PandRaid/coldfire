@@ -76,6 +76,16 @@ static void doBinopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instr
 }
 
 //
+// Emit code to implement a binary/unsigned 16 bit literal COLDFIRE instruction with only one argument
+//
+static void doUnopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
+    Uns32 rs = OP2_R1(instr);
+    vmiReg source = COLDFIRE_REGD(rs);
+
+    vmimtUnopR(COLDFIRE_BITS, op, source, flags);
+}
+
+//
 // Emit code to implement a binary/unsigned 48 bit literal COLDFIRE instruction
 //
 static void doBinopULit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
@@ -130,12 +140,19 @@ static COLDFIRE_DISPATCH_FN(morphADDA) {doBinopULit16(info->instruction, vmi_ADD
 static COLDFIRE_DISPATCH_FN(morphAND) {doBinopULit16(info->instruction, vmi_AND, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphOR) {doBinopULit16(info->instruction, vmi_OR, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphSUB) {doBinopULit16(info->instruction, vmi_SUB, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphDIVU)  {doBinopULit16(info->instruction, vmi_DIV, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphEOR) {doBinopULit16(info->instruction, vmi_XOR, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphMULU) {doBinopULit16(info->instruction, vmi_MUL, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphNOT) {doUnopULit16(info->instruction, vmi_NOT, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphSUBA) {doBinopULit16(info->instruction, vmi_SUB, &flagsCO, info->instrSize);}
 
 //Handle Immediate Instructions
 static COLDFIRE_DISPATCH_FN(morphANDI) {doBinopULit48(info->instruction, vmi_AND, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphADDI) {doBinopULit48(info->instruction, vmi_ADD, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphORI) {doBinopULit48(info->instruction, vmi_OR, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphSUBI) {doBinopULit48(info->instruction, vmi_SUB, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphEORI) {doBinopULit48(info->instruction, vmi_XOR, &flagsCO, info->instrSize);}
+
 //
 // Handle branch instructions
 //
@@ -151,12 +168,18 @@ static coldfireDispatchTableC dispatchTable = {
     [COLDFIRE_AND] = morphAND,
     [COLDFIRE_OR]  = morphOR,
     [COLDFIRE_SUB]  = morphSUB,
+    [COLDFIRE_DIVU] = morphDIVU,
+    [COLDFIRE_EOR] = morphEOR,
+    [COLDFIRE_MULU] = morphMULU,
+    [COLDFIRE_NOT] = morphNOT,
+    [COLDFIRE_SUBA] = morphSUBA,
 
     //handle immediate instructions
     [COLDFIRE_ADDI]  = morphADDI,
     [COLDFIRE_ANDI]  = morphANDI,
     [COLDFIRE_ORI]  = morphORI,
     [COLDFIRE_SUBI]  = morphSUBI,
+    [COLDFIRE_EORI]  = morphEORI,
     // handle branch instructions
     [COLDFIRE_J]     = morphJ,
 };

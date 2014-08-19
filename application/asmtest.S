@@ -19,7 +19,12 @@
 .global _start
 _start:	addi.l     #64, %d2
 		and.l 	   %d1, %d0
+		sub.l 	   %d3, %d4
+		eor.l      %d5, %d6
+		not.l 	   %d5
+		eori.l     #0xFF, %d7
 		adda.l     %d3, %a0
+		suba.l     %d3, %a1
 		andi.l 	   #129, %d2
 		add.l      %d1, %d2
 		jmp			exit

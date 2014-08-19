@@ -51,12 +51,18 @@ static vmidDecodeTableP createDecodeTable(void) {
     DECODE_ENTRY(0, AND,   "|1100....10......|");
     DECODE_ENTRY(0, SUB,   "|1001....10......|");
     DECODE_ENTRY(0, OR,    "|1000....10......|");
+    DECODE_ENTRY(0, MULU,  "|1100...011......|"); 
+    DECODE_ENTRY(0, DIVU,  "|1000...011......|");
+    DECODE_ENTRY(0, EOR,   "|1011...110......|");
+    DECODE_ENTRY(0, NOT,   "|0100011010000...|");
+    DECODE_ENTRY(0, SUBA,  "|1001...111......|");
     
     //handle immediate instr
     DECODE_ENTRY(0, ANDI,  "|0000001010000...|");
     DECODE_ENTRY(0, ADDI,  "|0000011010000...|");
     DECODE_ENTRY(0, ORI,   "|0000000010000...|");
     DECODE_ENTRY(0, SUBI,  "|0000010010000...|");
+    DECODE_ENTRY(0, EORI,  "|0000101010000...|");
 
     // handle branch instructions
     DECODE_ENTRY(0, J,     "|0100111011......|");
@@ -71,6 +77,12 @@ void static getInstructionLength(coldfireInstructionInfoP info){
         case COLDFIRE_ADDA:
         case COLDFIRE_ADD:
         case COLDFIRE_AND:
+        case COLDFIRE_SUB:
+        case COLDFIRE_SUBA:
+        case COLDFIRE_NOT:
+        case COLDFIRE_EOR:
+        case COLDFIRE_DIVU:
+        case COLDFIRE_MULU:
         case COLDFIRE_J:
             if((msw & 0x003F) != 0x003a)
                 info->instrSize = 16;
@@ -82,6 +94,7 @@ void static getInstructionLength(coldfireInstructionInfoP info){
         //Fixed 48 Bit
         case COLDFIRE_ANDI:
         case COLDFIRE_ADDI:
+        case COLDFIRE_EORI:
             info->instrSize = 48;
         default:
             info->instrSize = 48;
