@@ -8,16 +8,20 @@ Disassembly of section .text:
    6:	c081           	andl %d1,%d0
    8:	9883           	subl %d3,%d4
    a:	bb86           	eorl %d5,%d6
-   c:	4c03 4000      	mulul %d3,%d4
-  10:	4c43 4004      	remul %d3,%d4,%d4
-  14:	4685           	notl %d5
-  16:	0a87 0000 00ff 	eoril #255,%d7
-  1c:	d1c3           	addal %d3,%a0
-  1e:	93c3           	subal %d3,%a1
-  20:	0282 0000 0081 	andil #129,%d2
-  26:	d481           	addl %d1,%d2
-  28:	4efa 0008      	jmp %pc@(32 <exit>)
-  2c:	0682 ffff ffff 	addil #-1,%d2
+   c:	4685           	notl %d5
+   e:	0a87 0000 00ff 	eoril #255,%d7
+  14:	d1c3           	addal %d3,%a0
+  16:	93c3           	subal %d3,%a1
+  18:	0282 0000 0081 	andil #129,%d2
+  1e:	d481           	addl %d1,%d2
+  20:	4eba 0010      	jsr %pc@(32 <test>)
+  24:	4efa 0010      	jmp %pc@(36 <exit>)
+  28:	0682 ffff ffff 	addil #-1,%d2
+  2e:	6400 0006      	bccw 36 <exit>
 
-00000032 <exit>:
+00000032 <test>:
   32:	d081           	addl %d1,%d0
+  34:	4e75           	rts
+
+00000036 <exit>:
+  36:	d081           	addl %d1,%d0

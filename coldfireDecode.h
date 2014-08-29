@@ -53,7 +53,10 @@ typedef enum coldfireInstructionTypeE {
     COLDFIRE_EORI,
 
     //JUMP INSTRUCTIONS
+    COLDFIRE_BCC,
     COLDFIRE_J,
+    COLDFIRE_JSR,
+    COLDFIRE_RTS,
 
     //Fall through for 16,32,48 bit
     COLDFIRE_INSTR16,

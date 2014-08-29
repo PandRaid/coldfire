@@ -84,7 +84,7 @@ int main(int argc, char ** argv) {
     icmLoadProcessorMemory(processor, argv[1], ICM_LOAD_DEFAULT, False, True);
 
     // run processor, one instruction at a time
-    while(simulate(processor, 1)) {
+    while(simulate(processor, -1)) {
         // keep going while processor is still running
     }
 

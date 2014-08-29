@@ -65,7 +65,10 @@ static vmidDecodeTableP createDecodeTable(void) {
     DECODE_ENTRY(0, EORI,  "|0000101010000...|");
 
     // handle branch instructions
-    DECODE_ENTRY(0, J,     "|0100111011......|");
+    DECODE_ENTRY(0, BCC,    "|0110............|");
+    DECODE_ENTRY(0, J,      "|0100111011......|");
+    DECODE_ENTRY(0, JSR,     "|0100111010......|");
+    DECODE_ENTRY(0, RTS,     "|0100111001110101|");
 
     return table;
 }
@@ -84,6 +87,8 @@ void static getInstructionLength(coldfireInstructionInfoP info){
         case COLDFIRE_DIVU:
         case COLDFIRE_MULU:
         case COLDFIRE_J:
+        case COLDFIRE_JSR:
+        case COLDFIRE_RTS:
             if((msw & 0x003F) != 0x003a)
                 info->instrSize = 16;
             else if((msw & 0x003F) == 0x003a)
@@ -96,6 +101,13 @@ void static getInstructionLength(coldfireInstructionInfoP info){
         case COLDFIRE_ADDI:
         case COLDFIRE_EORI:
             info->instrSize = 48;
+            break;
+        case COLDFIRE_BCC:
+            if((msw & 0x00FF) != 0x00FF)
+                info->instrSize = 32;
+            else if((msw & 0x003F) == 0x003a)
+                info->instrSize = 48;
+            break;
         default:
             info->instrSize = 48;
     }

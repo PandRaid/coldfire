@@ -28,6 +28,7 @@
 #define COLDFIRE_LINK  7   //link register to a7 (stack)
 #define COLDFIRE_LINKREGA  COLDFIRE_REGA(COLDFIRE_LINK)
 
+
 // processor structure
 typedef struct coldfireS {
 	Bool       carryFlag;       // carry flag
@@ -36,8 +37,11 @@ typedef struct coldfireS {
     Bool	   zeroFlag;		//zero flag
     Bool	   signFlag;			//sign flag
     Bool 	   tempFlag;		//for derived flags
+    Bool 	   branchFlag;      //flag for branching
+    Uns8  stackTick;
     Uns32 regsD[COLDFIRE_REGSD]; // basic DATA registers
 	Uns32 regsA[COLDFIRE_REGSA]; // basic ADDRESS registers
+	Uns32 TEMP[4];
     vmiBusPortP busPorts;       // bus port descriptions
 } coldfire, *coldfireP;
 
@@ -49,8 +53,10 @@ typedef struct coldfireS {
 #define COLDFIRE_OVERFLOW           COLDFIRE_OFFSET(overflowFlag)
 #define COLDFIRE_ZERO				COLDFIRE_OFFSET(zeroFlag)
 #define COLDFIRE_SIGN				COLDFIRE_OFFSET(signFlag)
-#define COLDFIRE_TEMP				COLDFIRE_OFFSET(tempFlag)
-#define COLDFIRE_LINKREGA            COLDFIRE_REGA(COLDFIRE_LINK)
+#define COLDFIRE_LINKREGA           COLDFIRE_REGA(COLDFIRE_LINK)
+#define COLDFIRE_BRANCH 			COLDFIRE_OFFSET(branchFlag)
+#define COLDFIRE_TEMP_REG(_F)       VMI_CPU_TEMP(coldfireP, _F)
+#define COLDFIRE_TEMP(_R) 			COLDFIRE_TEMP_REG(TEMP[_R])
 
 // macros to specify target registers in CONSTANT expressions
 #define COLDFIRE_OFFSET_CONST(_F) 		VMI_CPU_REG_CONST(coldfireP, _F)

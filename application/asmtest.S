@@ -27,8 +27,14 @@ _start:	addi.l     #64, %d2
 		suba.l     %d3, %a1
 		andi.l 	   #129, %d2
 		add.l      %d1, %d2
-		jmp			exit
+		jsr 	   test
 		addi.l     #0xFFFFFFFF, %d2
+		bcc			exit
+		jmp			exit
+
+test:
+		add.l      %d1, %d0
+		rts
 .global exit
 exit:
 		add.l      %d1, %d0

@@ -42,6 +42,9 @@ const vmiFlags flagsCO = {
     }
 };
 
+static Uns32 sp=0;
+static Uns32 sp2=0;
+
 //
 // Emit code to implement a binary/unsigned 16 bit literal COLDFIRE instruction
 //
@@ -106,7 +109,8 @@ static void doJump(
     Uns64 instr,
     Uns32 thisPC,
     Bool  link, 
-    Uns8 instrLength
+    Uns8 instrLength,
+    coldfireInstructionType type
 ) {
     vmiReg      linkReg     = link ? COLDFIRE_LINKREGA : VMI_NOREG;
     vmiJumpHint hint;
@@ -122,14 +126,95 @@ static void doJump(
         Uns32 reg = OP7_REGA(instr);
         vmiReg source = COLDFIRE_REGA(reg);
         Uns32 nextAddress = thisPC + 2;
+        if(type == COLDFIRE_JSR){
+            vmimtStoreRCO(COLDFIRE_BITS, sp, linkReg, nextAddress, MEM_ENDIAN_BIG, False);
+            sp2++;
+            if(sp2%2 == 0)
+                sp++;
+        }
         vmimtUncondJumpReg(nextAddress,source, linkReg, hint);
     }
     else if(instrLength == 32){
         Uns32 offset = OP7_EXT16(instr);
         Uns32 nextAddress = thisPC + 4;
+        if(type == COLDFIRE_JSR){
+            vmimtStoreRCO(COLDFIRE_BITS, sp, linkReg, nextAddress, MEM_ENDIAN_BIG, False);
+            sp2++;
+            if(sp2%2 == 0)
+                sp++;
+        }
         Uns32 toAddress = thisPC + offset + 2;
         vmimtUncondJump(nextAddress,toAddress, linkReg, hint);
     }
+}
+
+//
+// Emit code for a return instruction
+//
+static void doReturn(
+    Uns64 instr,
+    Uns32 thisPC,
+    Bool  link, 
+    Uns8 instrLength,
+    coldfireInstructionType type
+) {
+    vmiReg source = COLDFIRE_TEMP(0);
+    Uns32 nextAddress = thisPC ;
+    vmiReg      linkReg     = link ? COLDFIRE_LINKREGA : VMI_NOREG;
+    if(type == COLDFIRE_RTS){
+        vmimtLoadRRO(32,32, 1, source, linkReg, MEM_ENDIAN_BIG, False, False);
+        sp2--;
+        if(sp2%2 == 0)
+            sp--;
+    }
+
+    vmimtUncondJumpReg(nextAddress,source, linkReg, vmi_JH_NONE);
+}
+
+//
+// Emit code for a branch instruction
+//
+static void doBranch(
+    Uns64 instr,
+    Uns32 thisPC,
+    Bool  link, 
+    Uns8 instrLength,
+    coldfireInstructionType type,
+    coldfireP coldfire
+) {
+
+    Bool jumpIfTrue=True;
+    Uns32 toAddress=0;
+    if(instrLength == 32){
+       Uns32 offset = OP1_EXT16(instr);
+       toAddress = thisPC + offset + 2;
+    }
+    else if(instrLength == 48){
+       Uns32 IMML = OP1_EXT16(instr);
+       Uns32 IMMU = OP1_EXT16P2(instr);
+       Uns32 offset = (IMMU << 16) | IMML;
+       toAddress = thisPC + offset + 2;
+    }
+
+    vmiReg condition = COLDFIRE_CARRY;
+
+    switch(OP1_COND(instr,instrLength)){
+        case 7:
+            break;
+        case 4:
+        case 5:
+            condition = COLDFIRE_CARRY;
+            break;
+    }
+
+    vmimtCondJump(
+            condition,        // flagReg
+            jumpIfTrue,         // jumpIfTrue
+            0,                  // linkPC
+            toAddress,          // toAddress
+            VMI_NOREG,          // linkReg
+            vmi_JH_NONE       // hint
+        );
 }
 
 //
@@ -143,7 +228,7 @@ static COLDFIRE_DISPATCH_FN(morphSUB) {doBinopULit16(info->instruction, vmi_SUB,
 static COLDFIRE_DISPATCH_FN(morphDIVU)  {doBinopULit16(info->instruction, vmi_DIV, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphEOR) {doBinopULit16(info->instruction, vmi_XOR, &flagsCO, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphMULU) {doBinopULit16(info->instruction, vmi_MUL, &flagsCO, info->instrSize);}
-static COLDFIRE_DISPATCH_FN(morphNOT) {doUnopULit16(info->instruction, vmi_NOT, &flagsCO, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphNOT) {doUnopULit16(info->instruction, vmi_NOT, 0, info->instrSize);}
 static COLDFIRE_DISPATCH_FN(morphSUBA) {doBinopULit16(info->instruction, vmi_SUB, &flagsCO, info->instrSize);}
 
 //Handle Immediate Instructions
@@ -156,7 +241,10 @@ static COLDFIRE_DISPATCH_FN(morphEORI) {doBinopULit48(info->instruction, vmi_XOR
 //
 // Handle branch instructions
 //
-static COLDFIRE_DISPATCH_FN(morphJ)     {doJump(info->instruction, info->thisPC, False, info->instrSize);}
+static COLDFIRE_DISPATCH_FN(morphJ)     {doJump(info->instruction, info->thisPC, False, info->instrSize, info->type);}
+static COLDFIRE_DISPATCH_FN(morphJSR)     {doJump(info->instruction, info->thisPC, True, info->instrSize, info->type);}
+static COLDFIRE_DISPATCH_FN(morphRTS)     {doReturn(info->instruction, info->thisPC, False, info->instrSize, info->type);}
+static COLDFIRE_DISPATCH_FN(morphBCC)     {doBranch(info->instruction, info->thisPC, False, info->instrSize, info->type, coldfire);}
 
 //
 // COLDFIRE morpher dispatch table
@@ -182,6 +270,9 @@ static coldfireDispatchTableC dispatchTable = {
     [COLDFIRE_EORI]  = morphEORI,
     // handle branch instructions
     [COLDFIRE_J]     = morphJ,
+    [COLDFIRE_JSR]     = morphJSR,
+    [COLDFIRE_RTS]    = morphRTS,
+    [COLDFIRE_BCC]    = morphBCC,
 };
 
 //

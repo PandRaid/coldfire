@@ -48,6 +48,15 @@
 #define OP7_REGA(_I)       WIDTH(3,(_I)>>0)
 #define OP7_EXT16(_I)       WIDTH(16,(_I)>>0)
 
+////////////////////////////////////////////////////////////////////////////////
+// OPCODE FORM BRANCH (16 32 or 48)
+// OPCODE(6) N(26)
+////////////////////////////////////////////////////////////////////////////////
+#define OP1_COND(_I, size)       WIDTH(4,(_I)>>(size-16+8))
+#define OP1_DISP(_I, size)       WIDTH(8,(_I)>>(size-16))
+#define OP1_EXT16(_I)       WIDTH(16,(_I)>>0)
+#define OP1_EXT16P2(_I)	     WIDTH(16, (_I)>>16)
+
 #endif
 
 	

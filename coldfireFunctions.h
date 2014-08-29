@@ -25,4 +25,9 @@ VMI_BUS_PORT_SPECS_FN(coldfireGetBusPortSpec);
 // Processor Info routine
 VMI_PROC_INFO_FN(coldfireProcInfo);
 
+// Imperas intercepted function support
+//VMI_INT_RETURN_FN(coldfireIntReturn);
+//VMI_INT_RESULT_FN(coldfireIntResult);
+//VMI_INT_PAR_FN(coldfireIntPar);
+
 #endif

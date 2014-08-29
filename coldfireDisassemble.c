@@ -18,6 +18,8 @@
 
 // standard includes
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // VMI header files
 #include "vmi/vmiCxt.h"
@@ -27,6 +29,8 @@
 #include "coldfireDecode.h"
 #include "coldfireInstructions.h"
 #include "coldfireFunctions.h"
+
+static Uns32 sp;
 
 // Disassemble a binary/unsigned 16bit instruction
 //
@@ -83,16 +87,55 @@ static void doBinopULit48(char *buffer, Uns64 instr, char *coldfireop, Uns8 inst
 //
 // Disassemble a branch or jump instruction.
 //
-static void doBranchJump(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength){
+static void doBranchJump(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength, coldfireInstructionType type){
     if(instrLength == 16){
         Uns32 reg = OP7_REGA(instr);
-        sprintf(buffer, "%-8s  a%u", coldfireop, reg);
+        if(type == COLDFIRE_JSR){
+            sp++;
+        }
+        else{
+            sprintf(buffer, "%-8s  a%u, SP %u", coldfireop, reg, sp);
+        }
     }
     else if(instrLength == 32){
         Uns32 offset = OP7_EXT16(instr);
-        Uns32 toAddress = thisPC + offset;
-        sprintf(buffer, "%-8s  %x", coldfireop, toAddress);
+        Uns32 toAddress = thisPC + offset + 2;
+        if(type == COLDFIRE_JSR){
+            sp++;
+            sprintf(buffer, "%-8s  %x, SP %u", coldfireop, toAddress, sp);
+        }
+        else{
+            sprintf(buffer, "%-8s  %x", coldfireop, toAddress);
+        }
     }
+}
+
+//
+// Disassemble a branch or jump instruction.
+//
+static void doBranch(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength, coldfireInstructionType type){
+   char* op = malloc(10*sizeof(char));
+    switch(OP1_COND(instr,instrLength)){
+        case 7:
+            strcpy(op, "equal");
+            break;
+        case 4:
+        case 5:
+            strcpy(op,"carry");
+            break;
+    }
+
+    sprintf(buffer, "%-8s %s", coldfireop, op);
+}
+
+//
+// Emit code for a return instruction
+//
+static void doReturn(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength, coldfireInstructionType type){
+    if(type == COLDFIRE_RTS)
+        sp--;
+
+    sprintf(buffer, "%-8s  %u(a7)", coldfireop, 4*sp);
 }
 
 //
@@ -119,7 +162,10 @@ static COLDFIRE_DISPATCH_FN(disEORI) {doBinopULit48(userData, info->instruction,
 //
 // Handle branch instructions
 //
-static COLDFIRE_DISPATCH_FN(disJ)     {doBranchJump(userData, info->thisPC, info->instruction, "jmp", info->instrSize);}
+static COLDFIRE_DISPATCH_FN(disJ)     {doBranchJump(userData, info->thisPC, info->instruction, "jmp", info->instrSize, info->type);}
+static COLDFIRE_DISPATCH_FN(disJSR)     {doBranchJump(userData, info->thisPC, info->instruction, "jsr", info->instrSize, info->type);}
+static COLDFIRE_DISPATCH_FN(disRTS)     {doReturn(userData, info->thisPC, info->instruction, "rts", info->instrSize, info->type);}
+static COLDFIRE_DISPATCH_FN(disBCC)     {doBranch(userData, info->thisPC, info->instruction, "bcc", info->instrSize, info->type);}
 
 //
 // COLDFIRE disassembler dispatch table
@@ -146,6 +192,9 @@ static coldfireDispatchTableC dispatchTable = {
     [COLDFIRE_EORI]  = disEORI,
     // handle branch instructions
     [COLDFIRE_J]     = disJ,
+    [COLDFIRE_JSR]     = disJSR,
+    [COLDFIRE_RTS]     = disRTS,
+    [COLDFIRE_BCC]     = disBCC,
 };
 
 
