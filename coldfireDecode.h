@@ -1,22 +1,6 @@
-/*
- *
- * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
- *
- * The contents of this file are provided under the Software License
- * Agreement that you accepted before downloading this file.
- *
- * This source forms part of the Software and can be used for educational,
- * training, and demonstration purposes but cannot be used for derivative
- * works except in cases where the derivative works require OVP technology
- * to run.
- *
- * For open source models released under licenses that you can use for
- * derivative works, please visit www.OVPworld.org or www.imperas.com
- * for the location of the open source models.
- *
- */
-
-// Utility routines and structures for the COLDFIRE decoder
+// This is the header file that contains
+// Utility routines, instruction enumeration
+// info structures for processor
 
 #ifndef COLDFIREDECODE_H
 #define COLDFIREDECODE_H
@@ -69,7 +53,7 @@ typedef enum coldfireInstructionTypeE {
 } coldfireInstructionType;
 
 //
-// Instruction type enumeration
+// Instruction length enumeration
 //
 typedef enum coldfireLengthE {
 
@@ -127,6 +111,7 @@ Bool coldfireDecode(
     void               *userData
 );
 
+// Function prototype for next address
 Uns32 coldfireNextAddr(
     coldfireP               coldfire,
     coldfireInstructionInfoP   info);

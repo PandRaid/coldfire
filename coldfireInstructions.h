@@ -1,27 +1,15 @@
 /*
- *
- * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
- *
- * The contents of this file are provided under the Software License
- * Agreement that you accepted before downloading this file.
- *
- * This source forms part of the Software and can be used for educational,
- * training, and demonstration purposes but cannot be used for derivative
- * works except in cases where the derivative works require OVP technology
- * to run.
- *
- * For open source models released under licenses that you can use for
- * derivative works, please visit www.OVPworld.org or www.imperas.com
- * for the location of the open source models.
- *
- */
+This is a header file the gives the layout of different types of
+coldfire instructions
+*/
 
 // Definition of masks for COLDFIRE instructions
 
 #ifndef COLDFIREINSTRUCTIONS_H
 #define COLDFIREINSTRUCTIONS_H
 
-#define WIDTH(_W, _ARG)  ((_ARG) & ((1<<(_W))-1))
+//shifting macro
+#define WIDTH(_W, _ARG)  ((_ARG) & ((1<<(_W))-1))   
 
 ////////////////////////////////////////////////////////////////////////////////
 // OPCODE FORM

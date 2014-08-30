@@ -1,20 +1,8 @@
-/*
- *
- * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
- *
- * The contents of this file are provided under the Software License
- * Agreement that you accepted before downloading this file.
- *
- * This source forms part of the Software and can be used for educational,
- * training, and demonstration purposes but cannot be used for derivative
- * works except in cases where the derivative works require OVP technology
- * to run.
- *
- * For open source models released under licenses that you can use for
- * derivative works, please visit www.OVPworld.org or www.imperas.com
- * for the location of the open source models.
- *
- */
+/**
+This file is just like a standard decoder. It takes the dissasmbled instructions
+and determines what type of instruction it is. It also determines the length of
+the instructions and how many bytes to advance
+**/
 
 // VMI header files
 #include "vmi/vmiCxt.h"
@@ -39,7 +27,7 @@
     )
 ;
 //
-// Create the coldfire decode table
+// Create the coldfire decode table which maps bit sequences to instructions
 //
 static vmidDecodeTableP createDecodeTable(void) {
     
@@ -64,7 +52,7 @@ static vmidDecodeTableP createDecodeTable(void) {
     DECODE_ENTRY(0, SUBI,  "|0000010010000...|");
     DECODE_ENTRY(0, EORI,  "|0000101010000...|");
 
-    // handle branch instructions
+    // handle branch/jump instructions
     DECODE_ENTRY(0, BCC,    "|0110............|");
     DECODE_ENTRY(0, J,      "|0100111011......|");
     DECODE_ENTRY(0, JSR,     "|0100111010......|");
@@ -73,6 +61,8 @@ static vmidDecodeTableP createDecodeTable(void) {
     return table;
 }
 
+//This function is for determining the length of the instruction
+//since coldfire supports 16, 32 and 48 bit instructions
 void static getInstructionLength(coldfireInstructionInfoP info){
     Uns16 msw = info->instruction;
     switch(info->type){
@@ -94,6 +84,12 @@ void static getInstructionLength(coldfireInstructionInfoP info){
             else if((msw & 0x003F) == 0x003a)
                 info->instrSize = 32;
             break;
+        case COLDFIRE_BCC:
+            if((msw & 0x00FF) != 0x00FF)
+                info->instrSize = 32;
+            else if((msw & 0x003F) == 0x003a)
+                info->instrSize = 48;
+            break;
         //Fixed 16 bit
         //Fixed 32 bit
         //Fixed 48 Bit
@@ -102,24 +98,19 @@ void static getInstructionLength(coldfireInstructionInfoP info){
         case COLDFIRE_EORI:
             info->instrSize = 48;
             break;
-        case COLDFIRE_BCC:
-            if((msw & 0x00FF) != 0x00FF)
-                info->instrSize = 32;
-            else if((msw & 0x003F) == 0x003a)
-                info->instrSize = 48;
-            break;
         default:
             info->instrSize = 48;
     }
 }
+
 //
-// Decode an instruction
-//
+// Decode instruction at designated address
 static coldfireInstructionType decode(coldfireP coldfire, Uns16 instr) {
 
     static vmidDecodeTableP decodeTable;
 
-    // create 48-bit instruction decode table if required
+    // create instruction decode table if required, 16 bits is used
+    // since all instructions start with 16 bits and extend if necesarry
     if(!decodeTable) {
         decodeTable = createDecodeTable();
     }
@@ -132,7 +123,7 @@ static coldfireInstructionType decode(coldfireP coldfire, Uns16 instr) {
 // Decode the coldfire instruction at the passed address. If the decode succeeds,
 // dispatch it to the corresponding function in the dispatch table and return
 // True; otherwise, dispatch using the defaultCB and return False.
-//
+// Determine the instruction length
 Bool coldfireDecode(
     coldfireP               coldfire,
     coldfireDispatchTableCP table,
@@ -151,8 +142,9 @@ Bool coldfireDecode(
 
     // is this a 16-bit or 32-bit instruction?
     if(info->instrSize == 16) {
-        info->instruction = instr16;
+        info->instruction = instr16;   //set info structure with size
 
+        // dispatch to the corresponding function in the dispatch table
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, info, userData);
             return True;
@@ -167,9 +159,9 @@ Bool coldfireDecode(
 
         // get 32-bit instruction
         Uns64 instr32 = (instr16<<16) | vmicxtFetch2Byte(processor, thisPC+2);
-        info->instruction = instr32;
+        info->instruction = instr32;   //set info structure with size
 
-
+        // dispatch to the corresponding function in the dispatch table
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, info, userData);
             return True;
@@ -184,8 +176,9 @@ Bool coldfireDecode(
         uint64_t IMM = vmicxtFetch4Byte(processor, thisPC+2);
         uint64_t shiftedInstr = ((uint64_t) instr16) << 32;
         uint64_t instr48 = IMM | shiftedInstr;
-        info->instruction = instr48;
+        info->instruction = instr48;  //set info structure with size
 
+        // dispatch to the corresponding function in the dispatch table
         if(type!=COLDFIRE_LAST) {
             ((*table)[type])(coldfire, info, userData);
             return True;
@@ -198,6 +191,8 @@ Bool coldfireDecode(
     
 }
 
+//function for determining the next address to move to
+//Used in the utils Next address function
 Uns32 coldfireNextAddr(
     coldfireP               coldfire,
     coldfireInstructionInfoP    info) {
@@ -208,7 +203,7 @@ Uns32 coldfireNextAddr(
     info->type = decode(coldfire, info->instruction);
     getInstructionLength(info);
 
-    // is this a 16-bit or 32-bit instruction?
+    //advance instruction based on instruction length
     if(info->instrSize == 16) {
         info->nextPC = info->thisPC + 2;
     } 

@@ -1,3 +1,7 @@
+#################################################################
+### Platform Makefile, extends from the COLDFIRE Imperas makefile
+#################################################################
+
 IMPERAS_HOME := $(shell getpath.exe "$(IMPERAS_HOME)")
 include $(IMPERAS_HOME)/bin/Makefile.include
 

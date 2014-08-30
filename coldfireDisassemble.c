@@ -1,20 +1,6 @@
-/*
- *
- * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
- *
- * The contents of this file are provided under the Software License
- * Agreement that you accepted before downloading this file.
- *
- * This source forms part of the Software and can be used for educational,
- * training, and demonstration purposes but cannot be used for derivative
- * works except in cases where the derivative works require OVP technology
- * to run.
- *
- * For open source models released under licenses that you can use for
- * derivative works, please visit www.OVPworld.org or www.imperas.com
- * for the location of the open source models.
- *
- */
+//Function for displaying the instruction information
+//Takes the dissamlbed and decoded instruction and then
+//displays the data from encoding i.e. registers, values, instr
 
 // standard includes
 #include <stdio.h>
@@ -39,6 +25,8 @@ static void doBinopULit16(char *buffer, Uns64 instr, char *coldfireop, Uns8 inst
     Uns8 mode = OP2_MODE(instr);
     Uns32 rd;
     Uns32 rs;
+
+    //determine which register is the destination and which one makes up effective address
     if(mode == 2){
         rd = OP2_R1(instr); 
         rs = OP2_R2(instr);
@@ -75,7 +63,7 @@ static void doUnopULit16(char *buffer, Uns64 instr, char *coldfireop, Uns8 instr
 // Disassemble a binary/unsigned 48bit instruction
 //
 static void doBinopULit48(char *buffer, Uns64 instr, char *coldfireop, Uns8 instrLength) {
-
+    //Get immediate data from instruction using shifting and oring
     Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
     Uns32 IMMU = OP3_IMMU(instr);
@@ -85,13 +73,13 @@ static void doBinopULit48(char *buffer, Uns64 instr, char *coldfireop, Uns8 inst
 }
 
 //
-// Disassemble a branch or jump instruction.
+// Disassemble a jump instruction.
 //
 static void doBranchJump(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength, coldfireInstructionType type){
     if(instrLength == 16){
-        Uns32 reg = OP7_REGA(instr);
+        Uns32 reg = OP7_REGA(instr);  //jumping from address register
         if(type == COLDFIRE_JSR){
-            sp++;
+            sp++;       //if doing jsr, decrease stack pointer
         }
         else{
             sprintf(buffer, "%-8s  a%u, SP %u", coldfireop, reg, sp);
@@ -99,9 +87,9 @@ static void doBranchJump(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfire
     }
     else if(instrLength == 32){
         Uns32 offset = OP7_EXT16(instr);
-        Uns32 toAddress = thisPC + offset + 2;
+        Uns32 toAddress = thisPC + offset + 2;      //determine next address if jumping to label
         if(type == COLDFIRE_JSR){
-            sp++;
+            sp++;  //if doing jsr, decrease stack pointer
             sprintf(buffer, "%-8s  %x, SP %u", coldfireop, toAddress, sp);
         }
         else{
@@ -111,12 +99,13 @@ static void doBranchJump(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfire
 }
 
 //
-// Disassemble a branch or jump instruction.
-//
+// Disassemble a branch instruction
 static void doBranch(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength, coldfireInstructionType type){
-   char* op = malloc(10*sizeof(char));
+   char* op = malloc(10*sizeof(char));  //allocate buffer for type of branch
+
+   //assign string based on encounted condition mode
     switch(OP1_COND(instr,instrLength)){
-        case 7:
+        case 7:    
             strcpy(op, "equal");
             break;
         case 4:
@@ -133,7 +122,7 @@ static void doBranch(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, 
 //
 static void doReturn(char *buffer, Uns32 thisPC, Uns64 instr, char *coldfireop, Uns8 instrLength, coldfireInstructionType type){
     if(type == COLDFIRE_RTS)
-        sp--;
+        sp--;   //if doing a return increase stack pointer
 
     sprintf(buffer, "%-8s  %u(a7)", coldfireop, 4*sp);
 }
@@ -152,7 +141,7 @@ static COLDFIRE_DISPATCH_FN(disNOT)  {doUnopULit16(userData, info->instruction, 
 static COLDFIRE_DISPATCH_FN(disEOR)   {doBinopULit16(userData, info->instruction, "eor.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disSUBA)  {doBinopULit16(userData, info->instruction, "suba.l", info->instrSize);}
 
-
+// Handle immediate instructions
 static COLDFIRE_DISPATCH_FN(disANDI) {doBinopULit48(userData, info->instruction, "andi.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disADDI) {doBinopULit48(userData, info->instruction, "addi.l", info->instrSize);}
 static COLDFIRE_DISPATCH_FN(disORI) {doBinopULit48(userData, info->instruction, "ori.l", info->instrSize);}
@@ -160,7 +149,7 @@ static COLDFIRE_DISPATCH_FN(disSUBI) {doBinopULit48(userData, info->instruction,
 static COLDFIRE_DISPATCH_FN(disEORI) {doBinopULit48(userData, info->instruction, "eori.l", info->instrSize);}
 
 //
-// Handle branch instructions
+// Handle branch/jump instructions
 //
 static COLDFIRE_DISPATCH_FN(disJ)     {doBranchJump(userData, info->thisPC, info->instruction, "jmp", info->instrSize, info->type);}
 static COLDFIRE_DISPATCH_FN(disJSR)     {doBranchJump(userData, info->thisPC, info->instruction, "jsr", info->instrSize, info->type);}

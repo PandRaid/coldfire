@@ -1,21 +1,7 @@
 /*
- *
- * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
- *
- * The contents of this file are provided under the Software License
- * Agreement that you accepted before downloading this file.
- *
- * This source forms part of the Software and can be used for educational,
- * training, and demonstration purposes but cannot be used for derivative
- * works except in cases where the derivative works require OVP technology
- * to run.
- *
- * For open source models released under licenses that you can use for
- * derivative works, please visit www.OVPworld.org or www.imperas.com
- * for the location of the open source models.
- *
- */
-
+File for getting and setting register information
+Contains debug support for register dumping
+*/
 
 // VMI header files
 #include "vmi/vmiCxt.h"
@@ -67,13 +53,13 @@ Uns8 coldfireGetSR(coldfireP coldfire) {
 //
 void coldfireSetSR(coldfireP coldfire, Uns8 value) {
 
-    // it is never possible to clear the fixed-one (FO) bit
+    // first 3 bits on lower 8 bits of SR always cleared
     value &= 0b00011111;
 
     // set the SR
     coldfire->CCR = value;
 
-    // set the current branch flag, carry flag and overflow flag from the SR
+    // set the carry flag and overflow flag from the SR
     coldfire->carryFlag    = GET_BIT(value, SPR_SR_CY);
     coldfire->overflowFlag = GET_BIT(value, SPR_SR_OVE);
 }

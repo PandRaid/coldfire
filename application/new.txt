@@ -1,3 +1,7 @@
+/**
+This is just the m68k-objdump from the asmtest
+it gives the binary breakdown for verification
+*/
 
 asmtest.o:     file format elf32-m68k
 

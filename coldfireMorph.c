@@ -1,19 +1,7 @@
 /*
- *
- * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
- *
- * The contents of this file are provided under the Software License
- * Agreement that you accepted before downloading this file.
- *
- * This source forms part of the Software and can be used for educational,
- * training, and demonstration purposes but cannot be used for derivative
- * works except in cases where the derivative works require OVP technology
- * to run.
- *
- * For open source models released under licenses that you can use for
- * derivative works, please visit www.OVPworld.org or www.imperas.com
- * for the location of the open source models.
- *
+This is the file that determines the behavior of
+the decoded instructions. The instruction type and length
+are passed through the dispatcher and used in computations
  */
 
 
@@ -42,6 +30,9 @@ const vmiFlags flagsCO = {
     }
 };
 
+//Stack pointer, *Note that this is a sketchy temporary fix. I could not find
+// a good way of doing stack type operations and the model seems to call morpher
+// way more than it should which causes issues in this implementation
 static Uns32 sp=0;
 static Uns32 sp2=0;
 
@@ -53,6 +44,8 @@ static void doBinopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instr
     Uns8 mode = OP2_MODE(instr);
     Uns32 rd;
     Uns32 rs;
+
+    //determine which register should be used as effective address
     if(mode == 2){
         rd = OP2_R1(instr); 
         rs = OP2_R2(instr);
@@ -66,13 +59,14 @@ static void doBinopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instr
         rs = OP2_R2(instr);
     }
 
+    //get the source and target registers from macro
     vmiReg target = COLDFIRE_REGD(rd);
     vmiReg source = COLDFIRE_REGD(rs);
     if(mode == 7){
         source = COLDFIRE_REGA(rs);
     }
 
-
+    //do operation between three registers
     vmimtBinopRRR(COLDFIRE_BITS, op, source, source, target, flags);
 
 
@@ -85,6 +79,7 @@ static void doUnopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrL
     Uns32 rs = OP2_R1(instr);
     vmiReg source = COLDFIRE_REGD(rs);
 
+    //do unary operation
     vmimtUnopR(COLDFIRE_BITS, op, source, flags);
 }
 
@@ -92,12 +87,13 @@ static void doUnopULit16(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrL
 // Emit code to implement a binary/unsigned 48 bit literal COLDFIRE instruction
 //
 static void doBinopULit48(Uns64 instr, vmiBinop op, vmiFlagsCP flags, Uns8 instrLength){
-
+    //get immediate data from 48 bit instruction
     Uns64 rd = OP3_R1(instr); 
     Uns32 IMML = OP3_IMML(instr);
     Uns32 IMMU = OP3_IMMU(instr);
     Uns32 Total = (IMMU << 16) | IMML;
 
+    //get register and do operation between two registers(target) and constant
     vmiReg target = COLDFIRE_REGD(rd);
     vmimtBinopRRC(COLDFIRE_BITS, op, target, target, Total, flags);
 }
@@ -112,6 +108,7 @@ static void doJump(
     Uns8 instrLength,
     coldfireInstructionType type
 ) {
+    //optimization stuff and register linking for jumps
     vmiReg      linkReg     = link ? COLDFIRE_LINKREGA : VMI_NOREG;
     vmiJumpHint hint;
 
@@ -122,29 +119,30 @@ static void doJump(
         hint = vmi_JH_NONE;
     }
 
+    //determine wether or not jumping from label or address registers
     if(instrLength == 16){
         Uns32 reg = OP7_REGA(instr);
         vmiReg source = COLDFIRE_REGA(reg);
         Uns32 nextAddress = thisPC + 2;
         if(type == COLDFIRE_JSR){
-            vmimtStoreRCO(COLDFIRE_BITS, sp, linkReg, nextAddress, MEM_ENDIAN_BIG, False);
-            sp2++;
+            vmimtStoreRCO(COLDFIRE_BITS, sp, linkReg, nextAddress, MEM_ENDIAN_BIG, False);  //store sp in memory
+            sp2++;                                                      //decrease stack
             if(sp2%2 == 0)
                 sp++;
         }
-        vmimtUncondJumpReg(nextAddress,source, linkReg, hint);
+        vmimtUncondJumpReg(nextAddress,source, linkReg, hint);     //jump to instruction
     }
-    else if(instrLength == 32){
+    else if(instrLength == 32){                             //label jump
         Uns32 offset = OP7_EXT16(instr);
         Uns32 nextAddress = thisPC + 4;
         if(type == COLDFIRE_JSR){
-            vmimtStoreRCO(COLDFIRE_BITS, sp, linkReg, nextAddress, MEM_ENDIAN_BIG, False);
-            sp2++;
+            vmimtStoreRCO(COLDFIRE_BITS, sp, linkReg, nextAddress, MEM_ENDIAN_BIG, False);  //store sp in memory
+            sp2++;                                      //decrease stack
             if(sp2%2 == 0)
                 sp++;
         }
         Uns32 toAddress = thisPC + offset + 2;
-        vmimtUncondJump(nextAddress,toAddress, linkReg, hint);
+        vmimtUncondJump(nextAddress,toAddress, linkReg, hint); //jump to instruction
     }
 }
 
@@ -185,6 +183,8 @@ static void doBranch(
 
     Bool jumpIfTrue=True;
     Uns32 toAddress=0;
+
+    //determine size of branch offset and calculate new address
     if(instrLength == 32){
        Uns32 offset = OP1_EXT16(instr);
        toAddress = thisPC + offset + 2;
@@ -198,6 +198,7 @@ static void doBranch(
 
     vmiReg condition = COLDFIRE_CARRY;
 
+    //use this for setting condition codes for the bcc functions, right now only carry supported
     switch(OP1_COND(instr,instrLength)){
         case 7:
             break;
@@ -207,6 +208,7 @@ static void doBranch(
             break;
     }
 
+    //jump based on whether corresponding type flag is set
     vmimtCondJump(
             condition,        // flagReg
             jumpIfTrue,         // jumpIfTrue

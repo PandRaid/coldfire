@@ -1,20 +1,9 @@
 /*
- *
- * Copyright (c) 2005-2014 Imperas Software Ltd., www.imperas.com
- *
- * The contents of this file are provided under the Software License
- * Agreement that you accepted before downloading this file.
- *
- * This source forms part of the Software and can be used for educational,
- * training, and demonstration purposes but cannot be used for derivative
- * works except in cases where the derivative works require OVP technology
- * to run.
- *
- * For open source models released under licenses that you can use for
- * derivative works, please visit www.OVPworld.org or www.imperas.com
- * for the location of the open source models.
- *
- */
+This file does all the initialization
+The main is contained in the constructor which uses the
+attrs to create processor and intialize registers
+All initilization for hardware based structures are done here
+*/
 
 
 // Imperas header files
@@ -39,9 +28,9 @@
 
 //
 // Template bus port list
-//
+// Coldfire uses flexbus that can do 8 bits or 16 bits
 const static vmiBusPort busPorts[] = {
-    {"INSTRUCTION", vmi_BP_MASTER, vmi_DOM_CODE, {8,16}, 1},
+    {"INSTRUCTION", vmi_BP_MASTER, vmi_DOM_CODE, {8,16}, 1},    
     {"DATA"       , vmi_BP_MASTER, vmi_DOM_DATA, {8,16}, 0},
 };
 
@@ -52,6 +41,7 @@ static void newBusPorts(coldfireP coldfire) {
 
     Uns32 i;
 
+    //allocate and initialize bus ports
     coldfire->busPorts = STYPE_CALLOC_N(vmiBusPort, NUM_MEMBERS(busPorts));
 
     for(i=0; i<NUM_MEMBERS(busPorts); i++) {
@@ -100,6 +90,7 @@ VMI_CONSTRUCTOR_FN(coldfireConstructor) {
     coldfireP coldfire = (coldfireP)processor;
     Uns32 i;
 
+    //initialize address, data and status registers
     for(i=0; i<(COLDFIRE_REGSD); i++) {
         coldfire->regsA[i] = 0x00000001;
     }

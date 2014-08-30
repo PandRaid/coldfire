@@ -1,3 +1,6 @@
+//Function prototype definitions, based on
+//macros from imperas libraries
+
 #ifndef COLDFIRE_FUNCTIONS_H
 #define COLDFIRE_FUNCTIONS_H
 
